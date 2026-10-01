@@ -23,10 +23,47 @@ public partial class TrainerService
     {
         var today = Today;
         UpdateCompliance(today);
+        var ftpNotes = ApplyRampTests();
         RecomputeLoads(today);
         var result = Regenerate(today);
+        LastPlanNotes = [.. ftpNotes, .. result.Notes];
         OnChanged();
         return result;
+    }
+
+    /// <summary>
+    /// A ride linked to a planned ramp test sets a new FTP: 75 % of its best 1-minute power.
+    /// Each test is applied once (an FTP entry with method Ramp on that date marks it done).
+    /// </summary>
+    public List<string> ApplyRampTests()
+    {
+        var notes = new List<string>();
+        using var db = Db();
+        var tests = db.PlannedWorkouts.AsNoTracking().Where(w => !w.Superseded && w.Kind == WorkoutKind.RampTest && w.Date <= Today).ToList();
+        if (tests.Count == 0) return notes;
+        var ids = tests.Select(t => t.Id).ToList();
+        var rides = db.Activities.AsNoTracking().Where(a => a.PlannedWorkoutId != null && ids.Contains(a.PlannedWorkoutId.Value)).ToList();
+        var history = db.FtpHistory.ToList();
+        foreach (var ride in rides)
+        {
+            if (!ride.PowerCurve.TryGetValue(60, out var best1Min) || best1Min <= 0) continue;
+            var date = ride.Date;
+            if (history.Any(f => f.Method == FtpMethod.Ramp && f.Date == date)) continue;
+            var old = Ftp.On(history, date);
+            var ftp = Ftp.FromRampTest(best1Min);
+            var entry = history.FirstOrDefault(f => f.Date == date);
+            if (entry is null)
+            {
+                entry = new FtpEntry { Date = date };
+                db.FtpHistory.Add(entry);
+                history.Add(entry);
+            }
+            entry.Watts = ftp;
+            entry.Method = FtpMethod.Ramp;
+            notes.Add($"Ramp test on {date:d MMM}: best 1-minute power {best1Min:0} W → new FTP {ftp} W (was {old} W). Future workouts use it.");
+        }
+        db.SaveChanges();
+        return notes;
     }
 
     public void UpdateCompliance(DateOnly today)

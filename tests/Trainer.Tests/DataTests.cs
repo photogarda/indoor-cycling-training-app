@@ -190,4 +190,54 @@ public class DataTests
         Assert.Equal(4, mine.Steps[1].Repeat);
         t.Service.DeleteTemplate(mine.Id);
     }
+
+    [Fact]
+    public void Ramp_test_ride_sets_ftp_and_replans()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(200, FtpMethod.Estimate); // a guess: the plan opens with a ramp test
+        var test = t.Service.GetWorkouts(t.Today, t.Today.AddDays(6)).First();
+        Assert.Equal(WorkoutKind.RampTest, test.Kind);
+
+        // Ride the ramp: last full minute at 360 W.
+        var start = test.Date.ToDateTime(new TimeOnly(18, 0));
+        var samples = new List<RideSample>();
+        for (var i = 0; i < 1500; i++) samples.Add(new RideSample(start.AddSeconds(i), i < 1300 ? 150 + i / 10.0 : (i < 1360 ? 360 : 80), 150, 90));
+        t.Today = test.Date.AddDays(1);
+        t.Service.ImportRides([(new RideData { Name = "Ramp", StartTime = start, Samples = samples }, ActivitySource.Fit)]);
+
+        Assert.Equal(270, t.Service.CurrentFtp()); // 75 % of 360
+        Assert.Contains(t.Service.GetFtpHistory(), f => f.Method == FtpMethod.Ramp && f.Date == test.Date);
+        Assert.Contains(t.Service.LastPlanNotes, n => n.Contains("new FTP 270 W"));
+        // Applied once only.
+        t.Service.Refresh();
+        Assert.Single(t.Service.GetFtpHistory(), f => f.Method == FtpMethod.Ramp);
+    }
+
+    [Fact]
+    public void Backup_and_restore_round_trip()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        t.Service.SaveRace(PlanTestKit.Race(0, new DateOnly(2027, 5, 16), RacePriority.A));
+        File.WriteAllText(Path.Combine(t.Paths.FitFolder, "ride.fit"), "fit");
+        var zip = Path.Combine(Path.GetTempPath(), $"trainer-backup-{Guid.NewGuid():N}.zip");
+        try
+        {
+            BackupService.Backup(t.Paths, zip);
+            t.Service.DeleteRace(t.Service.GetRaces().Single().Id);
+            File.Delete(Path.Combine(t.Paths.FitFolder, "ride.fit"));
+            Assert.Empty(t.Service.GetRaces());
+
+            BackupService.Restore(t.Paths, zip);
+            var restarted = t.Create();
+            restarted.Initialize();
+            Assert.Single(restarted.GetRaces());
+            Assert.True(File.Exists(Path.Combine(t.Paths.FitFolder, "ride.fit")));
+        }
+        finally
+        {
+            File.Delete(zip);
+        }
+    }
 }

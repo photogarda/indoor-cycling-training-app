@@ -333,6 +333,13 @@ public class PlanEngineTests
     }
 
     [Fact]
+    public void With_only_a_guessed_ftp_the_plan_opens_with_a_ramp_test()
+    {
+        var plan = Generate(Athlete(), ftp: [new FtpEntry { Date = Today, Watts = 200, Method = FtpMethod.Estimate }]);
+        Assert.Equal(WorkoutKind.RampTest, plan.Workouts[0].Kind);
+    }
+
+    [Fact]
     public void Without_any_ftp_the_first_workout_is_a_ramp_test()
     {
         var plan = Generate(Athlete(), ftp: []);

@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:Trainer.App.ViewModels"
+                    xmlns:v="clr-namespace:Trainer.App.Views">
+    <!-- Each screen's view-model is shown with its view. -->
+    <DataTemplate DataType="{x:Type vm:CalendarViewModel}"><v:CalendarView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:WorkoutDetailViewModel}"><v:WorkoutDetailView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:RacesViewModel}"><v:RacesView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:PlanOverviewViewModel}"><v:PlanOverviewView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ActivitiesViewModel}"><v:ActivitiesView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:AnalysisViewModel}"><v:AnalysisView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><v:SettingsView /></DataTemplate>
+</ResourceDictionary>

@@ -274,7 +274,8 @@ public static class PlanEngine
                 var weekEnd = s.Start.AddDays(6);
                 if (_frozen.Any(w => w.Kind == WorkoutKind.RampTest && w.Date >= s.Start && w.Date <= weekEnd)) continue;
 
-                var due = i == i0 && _in.FtpHistory.Count == 0 && last is null;
+                // No measured FTP yet (none, or only a guess/estimate): start with a ramp test.
+                var due = i == i0 && last is null && _in.FtpHistory.All(f => f.Method == FtpMethod.Estimate);
                 if (!due && i > 0 && specs[i - 1].Type == WeekType.Recovery)
                     due = last is null || s.Start.DayNumber - last.Value.DayNumber >= 24;
                 if (!due) continue;

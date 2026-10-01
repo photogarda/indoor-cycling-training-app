@@ -1,0 +1,122 @@
+<UserControl x:Class="Trainer.App.Views.CalendarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Trainer.App.Controls">
+    <UserControl.Resources>
+        <!-- One workout chip: status stripe, name, mini interval graph. Draggable. -->
+        <DataTemplate x:Key="WorkoutChip">
+            <Border Margin="0,2,0,0" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}"
+                    BorderThickness="1" CornerRadius="4" Cursor="Hand" ToolTip="{Binding Tooltip}" Tag="{Binding Id}"
+                    MouseLeftButtonDown="Workout_MouseDown" MouseMove="Workout_MouseMove">
+                <DockPanel>
+                    <Border DockPanel.Dock="Left" Width="4" CornerRadius="4,0,0,4" Background="{Binding Status, Converter={StaticResource StatusBrush}}" />
+                    <StackPanel Margin="5,3,4,3">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="🔒" FontSize="10" Visibility="{Binding Locked, Converter={StaticResource BoolToVis}}" />
+                            <TextBlock DockPanel.Dock="Right" Text="☀ " FontSize="10" Visibility="{Binding Outdoor, Converter={StaticResource BoolToVis}}" ToolTip="Outdoor" />
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{StaticResource Brush.Muted}" />
+                        <c:IntervalGraph Steps="{Binding Steps}" Compact="True" Height="16" Margin="0,2,0,0" IsHitTestVisible="False" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="RaceChip">
+            <Border Margin="0,2,0,0" Background="#FDE7E9" BorderBrush="#E35D6A" BorderThickness="1" CornerRadius="4" Padding="5,2" ToolTip="{Binding Tooltip}">
+                <TextBlock Text="{Binding Label, StringFormat='🏁 {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#9C2433" TextTrimming="CharacterEllipsis" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ActivityChip">
+            <Border Margin="0,2,0,0" Background="#E5F4EA" CornerRadius="4" Padding="5,2" ToolTip="{Binding Tooltip}">
+                <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="#226B3D" TextTrimming="CharacterEllipsis" />
+            </Border>
+        </DataTemplate>
+
+        <!-- A day: drop target, right-click to block. -->
+        <DataTemplate x:Key="DayTemplate">
+            <Border x:Name="Cell" Margin="2" Padding="5,4" CornerRadius="5" BorderThickness="1" BorderBrush="{StaticResource Brush.Border}"
+                    Background="{StaticResource Brush.Surface}" AllowDrop="True" Tag="{Binding}"
+                    Drop="Day_Drop" DragOver="Day_DragOver" MouseRightButtonUp="Day_RightClick">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top">
+                        <Border DockPanel.Dock="Right" CornerRadius="3" Padding="4,0" Visibility="{Binding ShowWeekInfo, Converter={StaticResource BoolToVis}}"
+                                Background="{Binding WeekInfo.Phase, Converter={StaticResource PhaseBrush}}">
+                            <TextBlock Text="{Binding WeekInfoLabel}" FontSize="10" Foreground="White" />
+                        </Border>
+                        <TextBlock x:Name="DayNum" Text="{Binding DayLabel}" FontSize="12" FontWeight="SemiBold" />
+                    </DockPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Blocked.Reason, StringFormat='⛔ {0}'}" FontSize="11" Foreground="{StaticResource Brush.Muted}"
+                                       Visibility="{Binding IsBlocked, Converter={StaticResource BoolToVis}}" TextTrimming="CharacterEllipsis" />
+                            <ItemsControl ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceChip}" />
+                            <ItemsControl ItemsSource="{Binding Workouts}" ItemTemplate="{StaticResource WorkoutChip}" />
+                            <ItemsControl ItemsSource="{Binding Activities}" ItemTemplate="{StaticResource ActivityChip}" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsOtherMonth}" Value="True">
+                    <Setter TargetName="Cell" Property="Opacity" Value="0.55" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBlocked}" Value="True">
+                    <Setter TargetName="Cell" Property="Background" Value="{StaticResource Brush.Blocked}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsToday}" Value="True">
+                    <Setter TargetName="Cell" Property="Background" Value="{StaticResource Brush.Today}" />
+                    <Setter TargetName="Cell" Property="BorderBrush" Value="#E9B949" />
+                    <Setter TargetName="DayNum" Property="Foreground" Value="#9A6B00" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- Toolbar -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Regenerate plan" Command="{Binding RegenerateCommand}" ToolTip="Re-run the plan engine from today" />
+                <Button Content="Send week to Edge" Style="{StaticResource PrimaryButton}" Command="{Binding SendWeekToEdgeCommand}" Margin="0"
+                        ToolTip="Export the next 7 days of workouts as FIT files to the Garmin Edge" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="‹" Command="{Binding PreviousCommand}" Width="34" />
+                <Button Content="Today" Command="{Binding GoTodayCommand}" />
+                <Button Content="›" Command="{Binding NextCommand}" Width="34" />
+                <TextBlock Text="{Binding Heading}" Style="{StaticResource H1}" Margin="8,0,16,0" VerticalAlignment="Center" />
+                <RadioButton Content="Month" IsChecked="{Binding MonthMode}" VerticalAlignment="Center" Margin="0,0,10,0" GroupName="CalMode" />
+                <RadioButton Content="Week" VerticalAlignment="Center" GroupName="CalMode" x:Name="WeekRadio" Checked="WeekRadio_Checked" />
+            </StackPanel>
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding WeekSummary}" Style="{StaticResource Muted}" Margin="2,0,0,6" />
+        <Border DockPanel.Dock="Top" Style="{StaticResource Banner}" Visibility="{Binding Notes, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+        </Border>
+        <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Muted}" FontSize="11" Margin="2,6,0,0"
+                   Text="Double-click a workout to open it · drag it to another day to move it (it gets locked) · right-click a day to block or unblock it.   Green = done · amber = partial · red = missed." />
+
+        <!-- Day-name header -->
+        <UniformGrid DockPanel.Dock="Top" Columns="7" Margin="0,0,0,2">
+            <TextBlock Text="Mon" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Tue" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Wed" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Thu" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Fri" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Sat" Style="{StaticResource Muted}" Margin="6,0" />
+            <TextBlock Text="Sun" Style="{StaticResource Muted}" Margin="6,0" />
+        </UniformGrid>
+
+        <ItemsControl ItemsSource="{Binding Days}" ItemTemplate="{StaticResource DayTemplate}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="7" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </DockPanel>
+</UserControl>

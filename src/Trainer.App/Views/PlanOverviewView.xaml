@@ -1,0 +1,52 @@
+<UserControl x:Class="Trainer.App.Views.PlanOverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sp="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+             xmlns:local="clr-namespace:Trainer.App.Views">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Plan overview" Style="{StaticResource H1}" />
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Headline}" Style="{StaticResource Muted}" Margin="0,0,0,12" />
+
+        <!-- Phase bands -->
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Blocks}" Margin="0,0,0,12" x:Name="Bands">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Height="28" Margin="0,0,2,0" CornerRadius="3" Background="{Binding Phase, Converter={StaticResource PhaseBrush}}"
+                            ToolTip="{Binding Tooltip}" Width="{Binding Weeks, Converter={x:Static local:WeekWidth.Instance}}">
+                        <TextBlock Text="{Binding Label}" Foreground="White" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Height="260" Padding="4">
+            <sp:WpfPlot x:Name="Chart" />
+        </Border>
+
+        <DataGrid ItemsSource="{Binding Weeks}">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="10">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding Phase, Converter={StaticResource PhaseBrush}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Week of" Binding="{Binding Start}" Width="110" />
+                <DataGridTextColumn Header="Phase" Binding="{Binding Phase}" Width="90" />
+                <DataGridTextColumn Header="Week" Binding="{Binding Type}" Width="80" />
+                <DataGridTextColumn Header="Target hours" Binding="{Binding Hours}" Width="100" />
+                <DataGridTextColumn Header="Planned" Binding="{Binding Planned}" Width="80" />
+                <DataGridTextColumn Header="Target TSS" Binding="{Binding Tss}" Width="90" />
+                <DataGridTextColumn Header="Planned CTL" Binding="{Binding Ctl}" Width="90" />
+                <DataGridTextColumn Header="Race" Binding="{Binding Race}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

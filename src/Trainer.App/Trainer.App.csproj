@@ -7,7 +7,13 @@
     <AssemblyName>Trainer</AssemblyName>
     <ApplicationTitle>Cycling Training Planner</ApplicationTitle>
     <Version>0.1.0</Version>
+    <!-- ScottPlot.WPF pulls SkiaSharp.Views.WPF, which ships .NET Framework builds that run fine on .NET 8. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- WPF projects leave System.IO out of the implicit usings. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ScottPlot.WPF" Version="5.1.59" />

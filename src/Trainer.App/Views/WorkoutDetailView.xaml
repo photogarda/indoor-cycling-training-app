@@ -1,0 +1,75 @@
+<UserControl x:Class="Trainer.App.Views.WorkoutDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Trainer.App.Controls">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="‹ Back" Command="{Binding GoBackCommand}" VerticalAlignment="Center" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Save FIT file…" Command="{Binding SaveFitCommand}" />
+                <Button Content="Export to Edge" Style="{StaticResource PrimaryButton}" Command="{Binding ExportToEdgeCommand}" Margin="0" />
+            </StackPanel>
+            <TextBlock Text="{Binding Workout.Name}" Style="{StaticResource H1}" Margin="8,0,0,0" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Style="{StaticResource Muted}" Margin="0,0,0,10" />
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource Card}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource H2}">
+                    <Run Text="Intervals" />
+                    <Run Text="{Binding Ftp, StringFormat='· watts from FTP {0} W on this date (hover for detail)', Mode=OneWay}" Foreground="{StaticResource Brush.Muted}" FontWeight="Normal" />
+                </TextBlock>
+                <c:IntervalGraph Steps="{Binding Steps}" Ftp="{Binding Ftp}" Height="220" />
+            </DockPanel>
+        </Border>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="340" />
+            </Grid.ColumnDefinitions>
+            <DataGrid ItemsSource="{Binding Rows}" Margin="0,0,12,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Start" Binding="{Binding Start}" Width="70" />
+                    <DataGridTextColumn Header="Length" Binding="{Binding Length}" Width="70" />
+                    <DataGridTextColumn Header="% FTP" Binding="{Binding Target}" Width="90" />
+                    <DataGridTextColumn Header="Watts" Binding="{Binding Watts}" Width="90" />
+                    <DataGridTextColumn Header="Zone" Binding="{Binding Zone}" Width="110" />
+                    <DataGridTextColumn Header="Step" Binding="{Binding Label}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Options" Style="{StaticResource H2}" />
+                            <CheckBox Content="Indoor (ERG on the trainer)" IsChecked="{Binding Indoor}" IsEnabled="{Binding CanEdit}" />
+                            <CheckBox Content="Locked: the plan engine keeps it as is" IsChecked="{Binding Locked}" IsEnabled="{Binding CanEdit}" />
+                            <TextBlock Text="Duration (h:mm)" Style="{StaticResource FieldLabel}" />
+                            <DockPanel IsEnabled="{Binding CanEdit}">
+                                <Button DockPanel.Dock="Right" Content="Apply" Command="{Binding ResizeCommand}" Margin="8,0,0,0" />
+                                <TextBox Text="{Binding DurationText, UpdateSourceTrigger=PropertyChanged}" />
+                            </DockPanel>
+                            <TextBlock Text="Swap for another workout" Style="{StaticResource FieldLabel}" />
+                            <DockPanel IsEnabled="{Binding CanEdit}">
+                                <Button DockPanel.Dock="Right" Content="Swap" Command="{Binding SwapCommand}" Margin="8,0,0,0" />
+                                <ComboBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SwapTo}" DisplayMemberPath="Name" />
+                            </DockPanel>
+                            <TextBlock Text="Editing locks the workout so regenerating the plan won't change it." Style="{StaticResource Muted}" FontSize="11" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Visibility="{Binding ActivityText, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding ActivityText}" TextWrapping="Wrap" />
+                    </Border>
+                    <Border Style="{StaticResource Card}" Visibility="{Binding Description, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="About" Style="{StaticResource H2}" />
+                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>
