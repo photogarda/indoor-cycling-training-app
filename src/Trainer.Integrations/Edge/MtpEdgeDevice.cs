@@ -23,7 +23,7 @@ public sealed class MtpEdgeDevice : IEdgeDevice
         var found = new List<IEdgeDevice>();
         var manager = MediaDeviceManager.Instance;
         if (manager is null) return found;
-        foreach (var d in manager.GetDevices())
+        foreach (var d in manager.GetDevices() ?? [])
         {
             try
             {

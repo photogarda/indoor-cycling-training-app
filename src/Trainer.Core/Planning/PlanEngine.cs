@@ -183,7 +183,8 @@ public static class PlanEngine
                     specs[t].Phase = Phase.Taper;
                     specs[t].TargetRace = race;
                     specs[t].Type = WeekType.Load;
-                    specs[t].HoursFactor = r - taperStart == 1 && t == taperStart ? 0.7 : (taperLen == 2 ? 0.5 : 0.55);
+                    // Volume down 40–50 %: a 2-week taper steps down 0.6 → 0.5, a 1-week taper sits at 0.55.
+                    specs[t].HoursFactor = r - taperStart == 1 && t == taperStart ? 0.6 : (taperLen == 2 ? 0.5 : 0.55);
                 }
                 if (r + 1 < n)
                 {
