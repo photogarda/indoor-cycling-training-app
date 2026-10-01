@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- net8.0 for tests and portability; net8.0-windows adds MTP (Windows Portable Devices) support for newer Edges. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
+    <RootNamespace>Trainer.Integrations</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Garmin.FIT.Sdk" Version="21.217.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <PackageReference Include="MediaDevices" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Trainer.Core\Trainer.Core.csproj" />
+    <ProjectReference Include="..\Trainer.Data\Trainer.Data.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure training logic: no UI, no database, no I/O. Reusable by a future MAUI/Android client. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Trainer.Core</RootNamespace>
+  </PropertyGroup>
+</Project>

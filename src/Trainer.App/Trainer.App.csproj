@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Trainer.App</RootNamespace>
+    <AssemblyName>Trainer</AssemblyName>
+    <ApplicationTitle>Cycling Training Planner</ApplicationTitle>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.1.59" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Trainer.Core\Trainer.Core.csproj" />
+    <ProjectReference Include="..\Trainer.Data\Trainer.Data.csproj" />
+    <ProjectReference Include="..\Trainer.Integrations\Trainer.Integrations.csproj" />
+  </ItemGroup>
+</Project>
