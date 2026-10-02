@@ -72,7 +72,7 @@ The app opens on **Settings**:
 | Calendar | Month or week view of workouts, races, blocked days and rides, with each week's prescribed and done hours/TSS on the right. Drag a workout to another day, or right-click it to **Move to** a day, **Remove** it or **Restore** it. Right-click a day to block it. Double-click to open. Green is done, amber is partial, red is missed. **Send week to Edge** exports the next 7 days. |
 | Workout detail | Interval graph in watts and % FTP (hover for detail), TSS, IF, the step list. Toggle indoor or outdoor, lock, change the length, swap for another workout, export to the Edge or save the FIT file. |
 | Races | Add or edit races: date, type, duration, intensity 1–10, priority A/B/C. An A race less than 3 months from another is refused. |
-| Plan overview | Phase bands (base, build, specialty, taper), weekly target hours and TSS, planned CTL against actual CTL. |
+| Plan overview | Choose the **plan period** (From / To dates, or automatic). Phase bands (base, build, specialty, taper), weekly target hours and TSS, planned CTL against actual CTL. |
 | Activities | Imported rides. Import from the Edge, from FIT files or from Strava. Link a ride to a planned workout by hand. |
 | Analysis | PMC (CTL, ATL, TSB) with races marked, power curve for the last 6 weeks against all time, weekly compliance, FTP estimate from rides. |
 | Settings | Athlete, FTP history, Edge and watched folder, Strava, workout library editor, backup and restore. |
@@ -167,6 +167,12 @@ free, non-adjacent day that week, or is dropped. A bad week (3+ missed, or under
 makes the next week repeat its load. If TSB stays below −30 for 3 days, the next key session becomes an
 endurance ride. Old plan versions are kept (the last 20).
 
+**Plan period.** On Plan overview you can set *From* and *To* dates. No workouts are planned before From
+(the build-up toward your A race is counted from it) or after To; phases are still counted back from races
+that fall after the period, so the weeks inside it are right. Workouts you placed by hand stay where they
+are. Leave a date empty (or press Automatic) for the default: from today until your last A race, at
+least 8 weeks ahead.
+
 **Moving and removing workouts.** A moved workout is locked on its new day. If it moves to another week,
 the week it left isn't back-filled (its day stays free) and the week it lands in trims its other rides to
 stay within its hours. A removed workout leaves a rest day; the session isn't re-planned elsewhere and the
@@ -205,7 +211,7 @@ own workouts are picked by the plan engine like the built-in ones.
 
 ## Status
 
-Everything on the v1 list is built, and the core is covered by 104 tests. These items still need checking on
+Everything on the v1 list is built, and the core is covered by 109 tests. These items still need checking on
 real hardware or accounts:
 
 - **Milestone 2:** copying to your exact Edge model over MTP, and riding an exported workout in ERG. The

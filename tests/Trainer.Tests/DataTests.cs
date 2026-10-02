@@ -279,4 +279,21 @@ public class DataTests
         t.Service.MoveWorkout(w.Id, w.Date);
         Assert.Null(t.Service.GetWorkout(w.Id)!.OriginalDate);
     }
+
+    [Fact]
+    public void Plan_period_is_saved_and_applied()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        var from = t.Today.AddDays(14);
+        var to = t.Today.AddDays(70);
+        Assert.Throws<TrainerValidationException>(() => t.Service.SetPlanPeriod(from, from.AddDays(3)));
+        t.Service.SetPlanPeriod(from, to);
+        Assert.Equal(from, t.Service.GetAthlete().PlanStartDate);
+        Assert.Empty(t.Service.GetWorkouts(t.Today, from.AddDays(-1)));
+        Assert.Empty(t.Service.GetWorkouts(to.AddDays(1), to.AddDays(60)));
+        Assert.NotEmpty(t.Service.GetWorkouts(from, to));
+        t.Service.SetPlanPeriod(null, null); // back to automatic
+        Assert.NotEmpty(t.Service.GetWorkouts(t.Today, from.AddDays(-1)));
+    }
 }

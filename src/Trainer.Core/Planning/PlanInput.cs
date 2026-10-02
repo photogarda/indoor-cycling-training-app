@@ -34,6 +34,10 @@ public class PlanInput
     public DateOnly? SeasonStart { get; init; }
 
     public int MinWeeksAhead { get; init; } = 8;
+
+    /// <summary>Rider-chosen plan period. No workouts before <see cref="PlanFrom"/> or after <see cref="PlanTo"/>.</summary>
+    public DateOnly? PlanFrom { get; init; }
+    public DateOnly? PlanTo { get; init; }
 }
 
 public class PlanResult

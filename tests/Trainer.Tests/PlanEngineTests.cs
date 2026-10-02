@@ -390,6 +390,51 @@ public class PlanEngineTests
         AssertNoConsecutiveKeys(adapted);
     }
 
+    // ---------- Plan period ----------
+
+    [Fact]
+    public void Plan_period_limits_workouts_to_the_chosen_dates()
+    {
+        var from = new DateOnly(2026, 11, 4); // a Wednesday a month out
+        var to = new DateOnly(2027, 2, 28);
+        var plan = Generate(Athlete(), [Race(1, GranFondoDay, RacePriority.A, EventType.GranFondo, 5)], planFrom: from, planTo: to);
+        Assert.NotEmpty(plan.Workouts);
+        Assert.All(plan.Workouts, w => Assert.InRange(w.Date, from, to));
+        Assert.Equal(to, plan.End);
+        Assert.Equal(PlanEngine.WeekStart(from), plan.Weeks[0].WeekStart);
+        Assert.Equal(PlanEngine.WeekStart(to), plan.Weeks[^1].WeekStart);
+    }
+
+    [Fact]
+    public void Ending_the_period_before_the_race_keeps_phases_counted_from_the_race()
+    {
+        var races = new[] { Race(1, GranFondoDay, RacePriority.A, EventType.GranFondo, 5) };
+        var full = Generate(Athlete(), races);
+        var cut = Generate(Athlete(), races, planTo: new DateOnly(2027, 2, 28));
+        foreach (var w in cut.Weeks)
+            Assert.Equal(full.Weeks.Single(x => x.WeekStart == w.WeekStart).Phase, w.Phase);
+        Assert.Contains(cut.Weeks, w => w.Phase == Phase.Build);
+    }
+
+    [Fact]
+    public void Later_start_shortens_the_build_up()
+    {
+        var races = new[] { Race(1, GranFondoDay, RacePriority.A, EventType.GranFondo, 5) };
+        var late = Generate(Athlete(), races, planFrom: new DateOnly(2027, 1, 4), seasonStart: new DateOnly(2027, 1, 4));
+        // 19 weeks to the race: taper 2, specialty 6, build 8, base 3.
+        Assert.Equal(3, late.Weeks.Count(w => w.Phase == Phase.Base));
+        Assert.Equal(8, late.Weeks.Count(w => w.Phase == Phase.Build));
+        Assert.DoesNotContain(late.Workouts, w => w.Date < new DateOnly(2027, 1, 4));
+    }
+
+    [Fact]
+    public void Period_in_the_past_plans_nothing_and_says_so()
+    {
+        var plan = Generate(Athlete(), planTo: Today.AddDays(-1));
+        Assert.Empty(plan.Workouts);
+        Assert.Contains(plan.Notes, n => n.Contains("plan period ended"));
+    }
+
     // ---------- FTP tests ----------
 
     [Fact]

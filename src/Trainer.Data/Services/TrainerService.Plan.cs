@@ -131,7 +131,10 @@ public partial class TrainerService
             Existing = existing,
             Loads = db.DailyLoads.AsNoTracking().Where(l => l.Date < start && l.Date >= start.AddDays(-7)).ToList(),
             BadWeeks = BadWeeks(db, start),
-            SeasonStart = seasonStart ?? start,
+            // A chosen start date is where the build-up toward the target race is counted from.
+            SeasonStart = athlete.PlanStartDate ?? seasonStart ?? start,
+            PlanFrom = athlete.PlanStartDate,
+            PlanTo = athlete.PlanEndDate,
         };
         var result = PlanEngine.Generate(input);
 

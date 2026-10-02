@@ -36,6 +36,24 @@ public partial class TrainerService
         Refresh();
     }
 
+    /// <summary>
+    /// Sets the plan period (either end may be empty for automatic) and regenerates: no workouts are planned
+    /// before <paramref name="from"/> or after <paramref name="to"/>.
+    /// </summary>
+    public void SetPlanPeriod(DateOnly? from, DateOnly? to)
+    {
+        if (from is { } f && to is { } t && t < f.AddDays(6))
+            throw new TrainerValidationException("The plan period must be at least one week long.");
+        using (var db = Db())
+        {
+            var a = db.Athletes.First();
+            a.PlanStartDate = from;
+            a.PlanEndDate = to;
+            db.SaveChanges();
+        }
+        Refresh();
+    }
+
     /// <summary>Integration settings (Edge path, Strava tokens) without triggering a regenerate.</summary>
     public void UpdateIntegrationSettings(Action<Athlete> update)
     {

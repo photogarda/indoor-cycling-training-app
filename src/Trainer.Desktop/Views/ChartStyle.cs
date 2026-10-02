@@ -51,14 +51,14 @@ public static class ChartStyle
         plot.Legend.Margin = new PixelPadding(8);
     }
 
-    /// <summary>Date axis with short labels: "29 Jul", or "Jul 26" when the chart spans more than ~5 months.</summary>
+    /// <summary>Date axis with short labels: "29 Jul", or "Jul 2026" when the chart spans more than a year.</summary>
     public static void DateAxis(Plot plot, DateTime from, DateTime to)
     {
         var axis = plot.Axes.DateTimeTicksBottom();
         if (axis.TickGenerator is DateTimeAutomatic auto)
         {
-            var long_ = (to - from).TotalDays > 150;
-            auto.LabelFormatter = d => d.ToString(long_ ? "MMM yy" : "d MMM", System.Globalization.CultureInfo.CurrentCulture);
+            var long_ = (to - from).TotalDays > 400;
+            auto.LabelFormatter = d => d.ToString(long_ ? "MMM yyyy" : "d MMM", System.Globalization.CultureInfo.CurrentCulture);
         }
         axis.TickLabelStyle.FontSize = 12;
         axis.TickLabelStyle.ForeColor = Muted;

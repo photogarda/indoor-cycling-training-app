@@ -17,6 +17,9 @@ public class Athlete
     public int? ThresholdHr { get; set; }
     /// <summary>Fixed date that anchors rolling no-race 3+1 cycles so regenerating doesn't shift recovery weeks.</summary>
     public DateOnly PlanAnchor { get; set; } = new(2026, 1, 5);
+    /// <summary>Optional plan period chosen by the rider; empty means automatic.</summary>
+    public DateOnly? PlanStartDate { get; set; }
+    public DateOnly? PlanEndDate { get; set; }
 
     // Integrations
     public string? EdgePath { get; set; }

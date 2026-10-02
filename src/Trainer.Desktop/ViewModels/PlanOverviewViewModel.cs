@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Trainer.Core.Models;
 using Trainer.Core.Planning;
 
@@ -33,6 +34,9 @@ public partial class PlanOverviewViewModel : ViewModelBase
     public ObservableCollection<PhaseBlock> Blocks { get; } = [];
     [ObservableProperty] private string _headline = "";
     [ObservableProperty] private int _chartVersion;
+    [ObservableProperty] private DateTime? _periodFrom;
+    [ObservableProperty] private DateTime? _periodTo;
+    [ObservableProperty] private string _periodText = "";
 
     public List<DailyLoad> ActualLoads { get; private set; } = [];
     public List<Race> Races { get; private set; } = [];
@@ -63,7 +67,34 @@ public partial class PlanOverviewViewModel : ViewModelBase
             : target is null
                 ? $"No A race on the calendar: rolling 8-week blocks ({Trainer.GetAthlete().NoRaceGoal} goal) through {overview.Plan.EndDate:d MMM yyyy}."
                 : $"Building to {target.Name} on {target.Date:d MMM yyyy} ({(target.Date.DayNumber - Trainer.Today.DayNumber) / 7} weeks). Plan generated {overview.Plan.CreatedAt:g}.";
+        var athlete = Trainer.GetAthlete();
+        PeriodFrom = athlete.PlanStartDate?.ToDateTime(TimeOnly.MinValue);
+        PeriodTo = athlete.PlanEndDate?.ToDateTime(TimeOnly.MinValue);
+        PeriodText = (athlete.PlanStartDate, athlete.PlanEndDate) switch
+        {
+            (null, null) => "Automatic: from today until your last A race (at least 8 weeks ahead).",
+            ({ } f, null) => $"From {f:d MMM yyyy}, then automatic.",
+            (null, { } until) => $"From today until {until:d MMM yyyy}.",
+            ({ } f, { } until) => $"From {f:d MMM yyyy} to {until:d MMM yyyy} ({(until.DayNumber - f.DayNumber + 1) / 7} weeks).",
+        };
         ActualLoads = Trainer.GetLoads(Trainer.Today.AddDays(-84));
         ChartVersion++;
     }
+
+    /// <summary>Saves the plan period and regenerates. Either date may be empty (automatic).</summary>
+    [RelayCommand]
+    private Task SavePeriod() => RunAsync(async () =>
+    {
+        DateOnly? from = PeriodFrom is { } f ? DateOnly.FromDateTime(f) : null;
+        DateOnly? to = PeriodTo is { } t ? DateOnly.FromDateTime(t) : null;
+        await Task.Run(() => Trainer.SetPlanPeriod(from, to));
+        Shell?.Toast("Plan period saved. The plan was regenerated for it.");
+    }, "Re-planning for the new period…");
+
+    [RelayCommand]
+    private Task AutomaticPeriod() => RunAsync(async () =>
+    {
+        await Task.Run(() => Trainer.SetPlanPeriod(null, null));
+        Shell?.Toast("Plan period set back to automatic.");
+    }, "Re-planning…");
 }

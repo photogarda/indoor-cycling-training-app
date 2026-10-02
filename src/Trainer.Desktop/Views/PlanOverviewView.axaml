@@ -4,7 +4,32 @@
              x:Class="Trainer.Desktop.Views.PlanOverviewView">
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="Plan overview" Classes="h1" />
-        <TextBlock DockPanel.Dock="Top" Text="{Binding Headline}" Classes="muted" Margin="0,0,0,12" />
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Headline}" Classes="muted" Margin="0,0,0,10" />
+
+        <!-- Plan period -->
+        <Border DockPanel.Dock="Top" Classes="card" Padding="14,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="Save period" Classes="primary" Command="{Binding SavePeriodCommand}" />
+                    <Button Content="Automatic" Command="{Binding AutomaticPeriodCommand}" Margin="0"
+                            ToolTip.Tip="Clear both dates: plan from today until the last A race" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel VerticalAlignment="Center" Width="180">
+                        <TextBlock Text="Plan period" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding PeriodText}" Classes="muted" FontSize="11" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="From (empty = today)" Classes="label" Margin="0,0,0,3" />
+                        <CalendarDatePicker SelectedDate="{Binding PeriodFrom}" Width="170" Watermark="Today" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="To (empty = automatic)" Classes="label" Margin="0,0,0,3" />
+                        <CalendarDatePicker SelectedDate="{Binding PeriodTo}" Width="170" Watermark="Automatic" />
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
         <!-- Phase bands: 18 px per week -->
         <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,12">

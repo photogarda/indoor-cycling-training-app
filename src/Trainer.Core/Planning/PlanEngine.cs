@@ -76,6 +76,7 @@ public static class PlanEngine
         private readonly HashSet<DayOfWeek> _trainingDays;
         private readonly PlanResult _result;
         private readonly DateOnly _start;
+        private readonly DateOnly _planTo;
         private readonly WorkoutTemplate _fallbackEndurance;
 
         public Builder(PlanInput input)
@@ -84,10 +85,12 @@ public static class PlanEngine
             _athlete = input.Athlete;
             _level = _athlete.Level;
             _cycle = LevelRules.CycleLength(_level);
-            _start = input.Start;
+            // Planning begins today, or at the start of the rider's plan period if that's later.
+            _start = input.PlanFrom is { } from && from > input.Start ? from : input.Start;
+            _planTo = input.PlanTo ?? DateOnly.MaxValue;
             _picker = new TemplatePicker(input.Templates);
             _blocked = input.BlockedDays.Select(b => b.Date).ToHashSet();
-            _frozen = input.Existing.Where(w => !w.Superseded && (w.Date < _start || w.Locked)).ToList();
+            _frozen = input.Existing.Where(w => !w.Superseded && (w.Date < input.Start || w.Locked)).ToList();
             _frozenDates = _frozen.Where(w => w.Date >= _start).Select(w => w.Date).ToHashSet();
             _trainingDays = _athlete.TrainingDays.ToHashSet();
             _fallbackEndurance = new WorkoutTemplate
@@ -111,6 +114,7 @@ public static class PlanEngine
             if (futureA.Count > 0 && futureA[^1].Date.AddDays(7) > end) end = futureA[^1].Date.AddDays(7);
             var lastAny = _in.Races.Where(r => r.Date >= _start).Select(r => r.Date).DefaultIfEmpty(_start).Max();
             if (lastAny > end) end = lastAny;
+            if (_in.PlanTo is { } to && to > end) end = to;
             if (end > _start.AddYears(2)) end = _start.AddYears(2);
             var endWeek = WeekStart(end);
 
@@ -131,10 +135,13 @@ public static class PlanEngine
             foreach (var r in _in.Races.Where(r => r.Priority != RacePriority.A)) _keyDates.Add(r.Date);
 
             var ctl = StartingCtl();
-            for (var i = i0; i < specs.Count; i++) ctl = FillWeek(specs[i], ctl);
+            // Weeks after the plan period aren't filled; the timeline above still counts phases back from later races.
+            for (var i = i0; i < specs.Count && specs[i].Start <= _planTo; i++) ctl = FillWeek(specs[i], ctl);
+            if (_planTo < _start) _result.Notes.Add($"The plan period ended on {_planTo:d MMM yyyy}. Change it in Plan overview to plan further.");
 
             ApplyFatigueGuard();
-            return new PlanResultBuilder(_result, endWeek.AddDays(6)).Result;
+            var planEnd = endWeek.AddDays(6) < _planTo ? endWeek.AddDays(6) : _planTo;
+            return new PlanResultBuilder(_result, planEnd < _start ? _start : planEnd).Result;
         }
 
         // ---------- Timeline: phases and load/recovery weeks ----------
@@ -364,7 +371,7 @@ public static class PlanEngine
             var slots = new List<Slot>();
             // The day a workout was moved away from stays free.
             var movedFromDays = movedOut.Select(w => w.OriginalDate!.Value).ToHashSet();
-            bool Open(DateOnly d) => d >= _start && !_blocked.Contains(d) && !_frozenDates.Contains(d) && !movedFromDays.Contains(d);
+            bool Open(DateOnly d) => d >= _start && d <= _planTo && !_blocked.Contains(d) && !_frozenDates.Contains(d) && !movedFromDays.Contains(d);
 
             // 1. Race-driven days: openers, recovery rides, easy mini-taper days.
             foreach (var d in days.Where(Open))
@@ -756,7 +763,8 @@ public static class PlanEngine
             var last = _in.Loads.Where(l => l.Date < _start).MaxBy(l => l.Date);
             if (last is null) return _athlete.WeeklyHours * 45 / 7; // assume current hours at ~0.67 IF
             var ctl = last.Ctl;
-            for (var d = last.Date.AddDays(1); d < _start; d = d.AddDays(1)) ctl -= ctl / Pmc.CtlDays;
+            // Decay only up to today: if the plan period starts later, assume current fitness is kept until then.
+            for (var d = last.Date.AddDays(1); d < _in.Start; d = d.AddDays(1)) ctl -= ctl / Pmc.CtlDays;
             return ctl;
         }
 

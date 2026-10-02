@@ -28,7 +28,8 @@ public static class PlanTestKit
 
     public static PlanResult Generate(Athlete athlete, IReadOnlyList<Race>? races = null, IReadOnlyList<BlockedDay>? blocked = null,
         IReadOnlyList<PlannedWorkout>? existing = null, DateOnly? start = null, IReadOnlyList<DailyLoad>? loads = null,
-        IReadOnlySet<DateOnly>? badWeeks = null, DateOnly? seasonStart = null, IReadOnlyList<FtpEntry>? ftp = null) =>
+        IReadOnlySet<DateOnly>? badWeeks = null, DateOnly? seasonStart = null, IReadOnlyList<FtpEntry>? ftp = null,
+        DateOnly? planFrom = null, DateOnly? planTo = null) =>
         PlanEngine.Generate(new PlanInput
         {
             Athlete = athlete,
@@ -41,6 +42,8 @@ public static class PlanTestKit
             Loads = loads ?? [],
             BadWeeks = badWeeks ?? new HashSet<DateOnly>(),
             SeasonStart = seasonStart,
+            PlanFrom = planFrom,
+            PlanTo = planTo,
         });
 
     public static string Describe(PlanResult plan)
