@@ -14,6 +14,8 @@ Compression=lzma2
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
+SetupIconFile=..\assets\icon.ico
+UninstallDisplayIcon={app}\Trainer.exe
 ; Data lives in %LOCALAPPDATA%\Trainer and is never touched by install or uninstall.
 
 [Files]

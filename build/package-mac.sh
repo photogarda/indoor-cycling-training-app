@@ -18,6 +18,7 @@ dotnet publish "$ROOT/src/Trainer.Desktop/Trainer.Desktop.csproj" -c Release -r 
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp -R "$STAGE/." "$APP/Contents/MacOS/"
 chmod +x "$APP/Contents/MacOS/Trainer"
+cp "$ROOT/assets/icon.icns" "$APP/Contents/Resources/Trainer.icns"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -30,6 +31,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleShortVersionString</key><string>$VERSION</string>
   <key>CFBundleExecutable</key><string>Trainer</string>
   <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleIconFile</key><string>Trainer</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>

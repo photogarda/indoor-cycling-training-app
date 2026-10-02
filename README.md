@@ -189,6 +189,7 @@ own workouts are picked by the plan engine like the built-in ones.
 | `Trainer.Integrations` | FIT workout writer and activity reader (Garmin FIT SDK), Edge drive and MTP access, watched folder, Strava client. |
 | `Trainer.Desktop` | Avalonia UI screens (Windows, macOS, Linux), MVVM view-models (CommunityToolkit.Mvvm), ScottPlot charts. |
 | `Trainer.Tests` | xUnit: engine on fixed calendars (one A race, two A races, A + B + C, no race), maths, compliance, database, FIT round-trips, Edge folder sync. |
+| `assets/` | App icon: `icon.svg` is the source; `icon.ico` (Windows), `icon.icns` (macOS), `icon.png` and `strava-icon.png` (for the Strava API app) are exported from it. |
 
 ## Status
 

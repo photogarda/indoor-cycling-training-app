@@ -2,13 +2,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Trainer.Desktop.Views.MainWindow"
         Title="Cycling Training Planner" Width="1360" Height="860" MinWidth="1000" MinHeight="640"
+        Icon="avares://Trainer/Assets/icon.png"
         WindowStartupLocation="CenterScreen" Background="{StaticResource Brush.Background}">
     <Grid ColumnDefinitions="210,*">
         <!-- Left-hand menu -->
         <DockPanel Background="{StaticResource Brush.Nav}">
-            <StackPanel DockPanel.Dock="Top" Margin="18,20,18,24">
-                <TextBlock Text="Training Planner" Foreground="White" FontSize="17" FontWeight="SemiBold" />
-                <TextBlock Text="Base · Build · Specialty" Foreground="{StaticResource Brush.NavText}" FontSize="11" Margin="0,2,0,0" />
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,18,12,22" Spacing="10">
+                <Image Source="avares://Trainer/Assets/icon.png" Width="38" Height="38" VerticalAlignment="Center" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Training Planner" Foreground="White" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="Base · Build · Specialty" Foreground="{StaticResource Brush.NavText}" FontSize="11" Margin="0,2,0,0" />
+                </StackPanel>
             </StackPanel>
             <TextBlock DockPanel.Dock="Bottom" Margin="18,12" Foreground="{StaticResource Brush.NavText}" FontSize="11" TextWrapping="Wrap"
                        Text="{Binding Version}" />

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<!-- Training Planner icon: a structured workout in power-zone colours with the FTP line. -->
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26394A"/><stop offset="1" stop-color="#162029"/></linearGradient></defs>
+<rect x="0" y="0" width="1024" height="1024" rx="220" fill="url(#bg)"/>
+<rect x="170.0" y="594.0" width="90.0" height="171.0" rx="14.0" fill="#9EA7AD"/>
+<rect x="275.0" y="502.8" width="90.0" height="262.2" rx="14.0" fill="#3B8FD9"/>
+<rect x="380.0" y="388.8" width="90.0" height="376.2" rx="14.0" fill="#F2B01E"/>
+<rect x="485.0" y="537.0" width="90.0" height="228.0" rx="14.0" fill="#3B8FD9"/>
+<rect x="590.0" y="309.0" width="90.0" height="456.0" rx="14.0" fill="#EE7B26"/>
+<rect x="695.0" y="206.4" width="90.0" height="558.6" rx="14.0" fill="#DE3B3B"/>
+<rect x="800.0" y="605.4" width="55.0" height="159.6" rx="14.0" fill="#9EA7AD"/>
+<line x1="140.0" y1="411.6" x2="884.0" y2="411.6" stroke="#FFFFFF" stroke-opacity="0.85" stroke-width="12.0" stroke-dasharray="34.0 22.0" stroke-linecap="round"/>
+<rect x="140.0" y="783.0" width="744.0" height="14.0" rx="7.0" fill="#FFFFFF" fill-opacity="0.9"/>
+</svg>
