@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,8 +17,28 @@ jobs:
       - name: Test
         run: dotnet test tests/Trainer.Tests -c Release --no-build --logger "console;verbosity=normal"
       - name: Publish Trainer.exe
-        run: dotnet publish src/Trainer.App/Trainer.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish
+        run: dotnet publish src/Trainer.Desktop/Trainer.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish
       - uses: actions/upload-artifact@v4
         with:
-          name: Trainer-win-x64
+          name: Trainer-windows-x64
           path: publish/Trainer.exe
+
+  mac:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Test
+        if: matrix.rid == 'osx-arm64'
+        run: dotnet test tests/Trainer.Tests -c Release
+      - name: Build Trainer.app
+        run: ./build/package-mac.sh ${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Trainer-mac-${{ matrix.rid == 'osx-arm64' && 'apple-silicon' || 'intel' }}
+          path: publish/Trainer-${{ matrix.rid }}.zip

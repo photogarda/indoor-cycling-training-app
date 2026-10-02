@@ -1,0 +1,210 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:Trainer.Desktop.Controls"
+             x:Class="Trainer.Desktop.Views.SettingsView">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Settings" Classes="h1" />
+        <Border DockPanel.Dock="Top" Classes="banner" IsVisible="{Binding ShowWelcome}">
+            <TextBlock TextWrapping="Wrap"
+                       Text="Welcome! Set your weekly hours and training days below, then enter an FTP you know (e.g. from a recent test). Don't know it? Type a rough guess and choose 'Start with a ramp test': the plan opens with a test and sets your real FTP from it." />
+        </Border>
+
+        <TabControl Padding="0,10,0,0">
+            <!-- Athlete and FTP -->
+            <TabItem Header="Athlete &amp; FTP">
+                <ScrollViewer>
+                    <Grid ColumnDefinitions="*,*" MaxWidth="1060" HorizontalAlignment="Left">
+                        <Border Classes="card" Margin="0,0,12,12" VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="Athlete" Classes="h2" />
+                                <TextBlock Text="Name" Classes="label" />
+                                <TextBox Text="{Binding Name}" />
+                                <TextBlock Text="Level (sets weekly load ramp and interval volume)" Classes="label" />
+                                <ComboBox ItemsSource="{Binding Levels}" SelectedItem="{Binding Level}" HorizontalAlignment="Stretch" />
+                                <TextBlock Classes="label" Text="{Binding WeeklyHours, StringFormat='Weekly hours: {0:0.#} h'}" />
+                                <Slider Minimum="2" Maximum="25" TickFrequency="0.5" IsSnapToTickEnabled="True" Value="{Binding WeeklyHours}" />
+                                <TextBlock Text="Training days" Classes="label" />
+                                <ItemsControl ItemsSource="{Binding Days}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding Label}" IsChecked="{Binding Selected}" Margin="0,0,10,0" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="Long-ride day" Classes="label" />
+                                <ComboBox ItemsSource="{Binding WeekDays}" SelectedItem="{Binding LongRideDay}" HorizontalAlignment="Stretch" />
+                                <TextBlock Text="With no race on the calendar, work on" Classes="label" />
+                                <ComboBox ItemsSource="{Binding Goals}" SelectedItem="{Binding NoRaceGoal}" HorizontalAlignment="Stretch" />
+                                <TextBlock Text="Threshold heart rate (for rides without power)" Classes="label" />
+                                <TextBox Text="{Binding ThresholdHr}" Width="100" HorizontalAlignment="Left" />
+                                <CheckBox Content="New workouts are indoor (ERG) by default" IsChecked="{Binding DefaultIndoor}" Margin="0,10,0,0" />
+                                <Button Content="Save" Classes="primary" Command="{Binding SaveAthleteCommand}" Margin="0,14,0,0" MinWidth="90" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Classes="card" VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="FTP" Classes="h2" />
+                                <TextBlock Text="{Binding CurrentFtpText}" Classes="muted" />
+                                <Grid ColumnDefinitions="90,*,*" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Watts" Classes="label" />
+                                        <TextBox Text="{Binding NewFtp}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="8,0">
+                                        <TextBlock Text="From" Classes="label" />
+                                        <ComboBox ItemsSource="{Binding Methods}" SelectedItem="{Binding NewFtpMethod}" HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Date" Classes="label" />
+                                        <CalendarDatePicker SelectedDate="{Binding NewFtpDate}" HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </Grid>
+                                <WrapPanel Margin="0,10,0,0">
+                                    <Button Content="Save FTP" Classes="primary" Command="{Binding AddFtpCommand}" Margin="0,0,8,6" />
+                                    <Button Content="Estimate from rides" Command="{Binding EstimateFtpCommand}" Margin="0,0,8,6"
+                                            ToolTip.Tip="95 % of your best 20 minutes in the last 6 weeks" />
+                                    <Button Content="Start with a ramp test" Command="{Binding StartWithRampTestCommand}" Margin="0,0,8,6"
+                                            IsVisible="{Binding ShowWelcome}" />
+                                </WrapPanel>
+                                <TextBlock Text="History" Classes="label" Margin="0,12,0,3" />
+                                <DataGrid ItemsSource="{Binding FtpHistory}" SelectedItem="{Binding SelectedFtp}" MaxHeight="220">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Date" Binding="{Binding Date}" Width="*" />
+                                        <DataGridTextColumn Header="FTP" Binding="{Binding Watts}" Width="80" />
+                                        <DataGridTextColumn Header="From" Binding="{Binding Method}" Width="100" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Button Content="Delete selected" Classes="danger" Command="{Binding DeleteFtpCommand}" Margin="0,8,0,0" />
+                                <TextBlock Classes="muted" FontSize="11" Margin="0,10,0,0"
+                                           Text="Workouts are stored as % FTP. Watts are worked out when a workout is exported, from the FTP on its date, so a new FTP updates every future workout. A ride linked to a planned ramp test sets FTP automatically (75 % of the best minute)." />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Edge, watched folder, Strava -->
+            <TabItem Header="Edge &amp; Strava">
+                <ScrollViewer>
+                    <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Garmin Edge (USB)" Classes="h2" />
+                                <TextBlock Classes="muted" Text="{Binding EdgeHelp}" />
+                                <TextBlock Text="Drive or folder (optional)" Classes="label" />
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="Detect" Command="{Binding DetectEdgeCommand}" Margin="8,0,0,0" />
+                                    <Button DockPanel.Dock="Right" Content="Browse…" Command="{Binding BrowseEdgeCommand}" Margin="8,0,0,0" />
+                                    <TextBox Text="{Binding EdgePath}" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding EdgeStatus}" Classes="muted" Margin="0,6,0,0" />
+                                <TextBlock Text="Watched folder for downloaded FIT files (e.g. from Garmin Connect)" Classes="label" />
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="Browse…" Command="{Binding BrowseWatchFolderCommand}" Margin="8,0,0,0" />
+                                    <TextBox Text="{Binding WatchFolder}" />
+                                </DockPanel>
+                                <Button Content="Save" Classes="primary" Command="{Binding SaveDevicesCommand}" Margin="0,12,0,0" MinWidth="90" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Strava" Classes="h2" />
+                                <TextBlock Classes="muted"
+                                           Text="Create your own API application at strava.com/settings/api with Authorization Callback Domain 'localhost', then paste its Client ID and Client Secret here. Rides already imported from the Edge are skipped; FIT files win over Strava." />
+                                <Button Content="Open Strava API settings" Command="{Binding OpenStravaApiPageCommand}" Margin="0,8,0,0" />
+                                <TextBlock Text="Client ID" Classes="label" />
+                                <TextBox Text="{Binding StravaClientId}" Width="200" HorizontalAlignment="Left" />
+                                <TextBlock Text="Client Secret" Classes="label" />
+                                <TextBox Text="{Binding StravaClientSecret}" PasswordChar="•" />
+                                <TextBlock Text="{Binding StravaStatus}" Margin="0,10,0,0" />
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="Connect" Classes="primary" Command="{Binding ConnectStravaCommand}" />
+                                    <Button Content="Disconnect" Command="{Binding DisconnectStravaCommand}" IsVisible="{Binding StravaConnected}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Workout library editor -->
+            <TabItem Header="Workout library">
+                <Grid ColumnDefinitions="300,*">
+                    <DockPanel Margin="0,0,12,0">
+                        <TextBox DockPanel.Dock="Top" Text="{Binding LibraryFilter}" Watermark="Filter by name or type" Margin="0,0,0,6" />
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="New" Command="{Binding NewTemplateCommand}" />
+                            <Button Content="Duplicate" Command="{Binding DuplicateTemplateCommand}" />
+                            <Button Content="Export ZWO…" Command="{Binding ExportTemplateZwoCommand}" Margin="0" />
+                        </StackPanel>
+                        <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Border Width="8" Height="8" CornerRadius="4" VerticalAlignment="Center" Background="{Binding Kind, Converter={StaticResource KindBrush}}" />
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text="(mine)" Classes="muted" IsVisible="{Binding !BuiltIn}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                    <ScrollViewer Grid.Column="1">
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Built-in workouts are read-only: duplicate one to make your own version." Classes="muted"
+                                           IsVisible="{Binding !TemplateEditable}" Margin="0,0,0,6" />
+                                <Grid ColumnDefinitions="*,220">
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Name" Classes="label" />
+                                        <TextBox Text="{Binding TemplateName}" IsReadOnly="{Binding !TemplateEditable}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Type (used by the plan engine)" Classes="label" />
+                                        <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding TemplateKind}" IsEnabled="{Binding TemplateEditable}" HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="Intervals" Classes="label" />
+                                <TextBox Text="{Binding TemplateNotation}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
+                                         FontFamily="Consolas,Menlo,monospace" IsReadOnly="{Binding !TemplateEditable}" />
+                                <TextBlock Classes="muted" FontSize="11" Margin="0,4,0,0"
+                                           Text="Steps separated by ; — [wu|cd|rec|fill|free] duration power% [&quot;label&quot;]. Durations 30s, 10m, 1h30m. Power 95 or 88-94 (% FTP). Repeats: 3x(10m 95, 5m 55). 'fill' stretches to the planned length; 'free' is ERG off." />
+                                <TextBlock Text="{Binding TemplateError}" Foreground="{StaticResource Brush.Danger}" Margin="0,6,0,0"
+                                           IsVisible="{Binding TemplateError, Converter={StaticResource HasValue}}" TextWrapping="Wrap" />
+                                <c:IntervalGraph Steps="{Binding TemplatePreview}" Ftp="{Binding PreviewFtp}" Height="160" Margin="0,10,0,0" />
+                                <TextBlock Text="{Binding TemplateStats}" Classes="muted" Margin="0,6,0,0" />
+                                <TextBlock Text="Description" Classes="label" />
+                                <TextBox Text="{Binding TemplateDescription}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44"
+                                         IsReadOnly="{Binding !TemplateEditable}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0" IsVisible="{Binding TemplateEditable}">
+                                    <Button Content="Save workout" Classes="primary" Command="{Binding SaveTemplateCommand}" />
+                                    <Button Content="Delete" Classes="danger" Command="{Binding DeleteTemplateCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- Data -->
+            <TabItem Header="Data">
+                <Border Classes="card" VerticalAlignment="Top" MaxWidth="760" HorizontalAlignment="Left">
+                    <StackPanel>
+                        <TextBlock Text="Your data" Classes="h2" />
+                        <TextBlock Classes="muted" Text="Everything lives in one folder: trainer.db (SQLite) and the fit folder of imported rides. Backing up is copying that folder; the buttons below zip it for you." />
+                        <SelectableTextBlock Text="{Binding DataFolder}" FontFamily="Consolas,Menlo,monospace" Margin="0,10,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="Open folder" Command="{Binding OpenDataFolderCommand}" />
+                            <Button Content="Back up…" Classes="primary" Command="{Binding BackupCommand}" />
+                            <Button Content="Restore…" Classes="danger" Command="{Binding RestoreCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</UserControl>

@@ -8,7 +8,11 @@ public sealed class DataPaths
 {
     public DataPaths(string? root = null)
     {
-        Root = root ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Trainer");
+        // Windows: %LOCALAPPDATA%\Trainer · macOS: ~/Library/Application Support/Trainer · Linux: ~/.local/share/Trainer
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (string.IsNullOrEmpty(appData))
+            appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
+        Root = root ?? Path.Combine(appData, "Trainer");
     }
 
     public string Root { get; }

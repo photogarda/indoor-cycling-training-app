@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- One desktop app for Windows, macOS and Linux (Avalonia UI). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- On Windows the windows build adds MTP access for newer Garmin Edges. Elsewhere plain net8.0. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework Condition="'$(OS)' == 'Windows_NT' Or '$(TargetWindows)' == 'true'">net8.0-windows</TargetFramework>
+    <RootNamespace>Trainer.Desktop</RootNamespace>
+    <AssemblyName>Trainer</AssemblyName>
+    <Product>Cycling Training Planner</Product>
+    <Version>0.2.0</Version>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.58" />
+    <!-- ScottPlot needs SkiaSharp 3; Avalonia 11 defaults to 2.88. Pin 3.x (managed and native) so both agree. -->
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Trainer.Core\Trainer.Core.csproj" />
+    <ProjectReference Include="..\Trainer.Data\Trainer.Data.csproj" />
+    <ProjectReference Include="..\Trainer.Integrations\Trainer.Integrations.csproj" />
+  </ItemGroup>
+</Project>

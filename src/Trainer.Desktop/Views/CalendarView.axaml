@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:Trainer.Desktop.Controls"
+             x:Class="Trainer.Desktop.Views.CalendarView">
+    <UserControl.Styles>
+        <Style Selector="Border.day">
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="Padding" Value="5,4" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+        </Style>
+        <Style Selector="Border.day.other"><Setter Property="Opacity" Value="0.55" /></Style>
+        <Style Selector="Border.day.blocked"><Setter Property="Background" Value="{StaticResource Brush.Blocked}" /></Style>
+        <Style Selector="Border.day.today">
+            <Setter Property="Background" Value="{StaticResource Brush.Today}" />
+            <Setter Property="BorderBrush" Value="#E9B949" />
+        </Style>
+        <Style Selector="Border.day.drop"><Setter Property="BorderBrush" Value="{StaticResource Brush.Accent}" /><Setter Property="BorderThickness" Value="2" /></Style>
+        <Style Selector="Border.chip">
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <!-- Toolbar -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Regenerate plan" Command="{Binding RegenerateCommand}" ToolTip.Tip="Re-run the plan engine from today" />
+                <Button Content="Week to ZWO…" Command="{Binding ExportWeekToZwoCommand}" ToolTip.Tip="Save the next 7 days as Zwift .zwo workout files" />
+                <Button Content="Send week to Edge" Classes="primary" Command="{Binding SendWeekToEdgeCommand}" Margin="0"
+                        ToolTip.Tip="Export the next 7 days as FIT files to the Garmin Edge" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="‹" Command="{Binding PreviousCommand}" Width="36" HorizontalContentAlignment="Center" />
+                <Button Content="Today" Command="{Binding GoTodayCommand}" />
+                <Button Content="›" Command="{Binding NextCommand}" Width="36" HorizontalContentAlignment="Center" />
+                <TextBlock Text="{Binding Heading}" Classes="h1" Margin="8,0,16,0" VerticalAlignment="Center" />
+                <RadioButton Content="Month" IsChecked="{Binding MonthMode}" GroupName="calmode" Margin="0,0,8,0" />
+                <RadioButton Content="Week" IsChecked="{Binding WeekMode}" GroupName="calmode" />
+            </StackPanel>
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding WeekSummary}" Classes="muted" Margin="2,0,0,6" />
+        <Border DockPanel.Dock="Top" Classes="banner" IsVisible="{Binding Notes, Converter={StaticResource HasValue}}">
+            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+        </Border>
+        <TextBlock DockPanel.Dock="Bottom" Classes="muted" FontSize="11" Margin="2,6,0,0"
+                   Text="Double-click a workout to open it · drag it to another day to move it (it gets locked) · right-click a day to block or unblock it.   Green = done · amber = partial · red = missed." />
+
+        <UniformGrid DockPanel.Dock="Top" Columns="7" Margin="0,0,0,2">
+            <TextBlock Text="Mon" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Tue" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Wed" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Thu" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Fri" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Sat" Classes="muted" Margin="6,0" />
+            <TextBlock Text="Sun" Classes="muted" Margin="6,0" />
+        </UniformGrid>
+
+        <ItemsControl ItemsSource="{Binding Days}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="7" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Classes="day" Classes.today="{Binding IsToday}" Classes.blocked="{Binding IsBlocked}" Classes.other="{Binding IsOtherMonth}"
+                            DragDrop.AllowDrop="True">
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top">
+                                <Border DockPanel.Dock="Right" CornerRadius="3" Padding="4,0" IsVisible="{Binding ShowWeekInfo}"
+                                        Background="{Binding WeekInfo.Phase, Converter={StaticResource PhaseBrush}}">
+                                    <TextBlock Text="{Binding WeekInfoLabel}" FontSize="10" Foreground="White" />
+                                </Border>
+                                <TextBlock Text="{Binding DayLabel}" FontSize="12" FontWeight="SemiBold" />
+                            </DockPanel>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Blocked.Reason, StringFormat='⛔ {0}'}" FontSize="11" Foreground="{StaticResource Brush.Muted}"
+                                               IsVisible="{Binding IsBlocked}" TextTrimming="CharacterEllipsis" />
+                                    <ItemsControl ItemsSource="{Binding Races}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,2,0,0" Background="#FDE7E9" BorderBrush="#E35D6A" BorderThickness="1" CornerRadius="4" Padding="5,2"
+                                                        ToolTip.Tip="{Binding Tooltip}">
+                                                    <TextBlock Text="{Binding Label, StringFormat='🏁 {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#9C2433" TextTrimming="CharacterEllipsis" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <ItemsControl ItemsSource="{Binding Workouts}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Classes="chip" ToolTip.Tip="{Binding Tooltip}">
+                                                    <DockPanel>
+                                                        <Border DockPanel.Dock="Left" Width="4" CornerRadius="4,0,0,4" Background="{Binding Status, Converter={StaticResource StatusBrush}}" />
+                                                        <StackPanel Margin="5,3,4,3">
+                                                            <DockPanel>
+                                                                <TextBlock DockPanel.Dock="Right" Text="🔒" FontSize="10" IsVisible="{Binding Locked}" />
+                                                                <TextBlock DockPanel.Dock="Right" Text="☀ " FontSize="10" IsVisible="{Binding Outdoor}" />
+                                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                                                            </DockPanel>
+                                                            <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{StaticResource Brush.Muted}" />
+                                                            <c:IntervalGraph Steps="{Binding Steps}" Compact="True" Height="16" Margin="0,2,0,0" IsHitTestVisible="False" />
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <ItemsControl ItemsSource="{Binding Activities}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,2,0,0" Background="#E5F4EA" CornerRadius="4" Padding="5,2" ToolTip.Tip="{Binding Tooltip}">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="#226B3D" TextTrimming="CharacterEllipsis" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </DockPanel>
+</UserControl>

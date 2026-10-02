@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Trainer.Desktop.Views.ActivitiesView">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Import from Edge" Classes="primary" Command="{Binding ImportFromEdgeCommand}" />
+                <Button Content="Import FIT files…" Command="{Binding ImportFilesCommand}" />
+                <Button Content="Sync Strava" Command="{Binding SyncStravaCommand}" />
+                <Button Content="Open FIT folder" Command="{Binding OpenFitFolderCommand}" Margin="0" />
+            </StackPanel>
+            <TextBlock Text="Activities" Classes="h1" Margin="0" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Classes="muted" Margin="0,0,0,10" />
+
+        <Border DockPanel.Dock="Bottom" Classes="card" Margin="0,12,0,0" IsVisible="{Binding Selected, Converter={StaticResource HasValue}}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="Linked planned workout:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <Button DockPanel.Dock="Right" Content="Delete ride" Classes="danger" Command="{Binding DeleteCommand}" Margin="0" />
+                <Button DockPanel.Dock="Right" Content="Link" Command="{Binding LinkCommand}" />
+                <ComboBox ItemsSource="{Binding LinkOptions}" SelectedItem="{Binding SelectedLink}" DisplayMemberBinding="{Binding Label}"
+                          HorizontalAlignment="Stretch" Margin="0,0,8,0" />
+            </DockPanel>
+        </Border>
+
+        <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Start" Binding="{Binding Date}" Width="160" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="100" />
+                <DataGridTextColumn Header="Time" Binding="{Binding Duration}" Width="70" />
+                <DataGridTextColumn Header="Distance" Binding="{Binding Distance}" Width="90" />
+                <DataGridTextColumn Header="Avg / NP" Binding="{Binding Power}" Width="105" />
+                <DataGridTextColumn Header="IF" Binding="{Binding If}" Width="55" />
+                <DataGridTextColumn Header="TSS" Binding="{Binding Tss}" Width="75" />
+                <DataGridTextColumn Header="HR" Binding="{Binding Hr}" Width="55" />
+                <DataGridTextColumn Header="Cad" Binding="{Binding Cadence}" Width="55" />
+                <DataGridTextColumn Header="Planned workout" Binding="{Binding LinkedTo}" Width="230" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

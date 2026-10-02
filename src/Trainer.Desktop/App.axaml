@@ -1,0 +1,30 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Trainer.Desktop.ViewModels"
+             xmlns:v="using:Trainer.Desktop.Views"
+             x:Class="Trainer.Desktop.App"
+             RequestedThemeVariant="Light"
+             Name="Training Planner">
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <StyleInclude Source="avares://Trainer/Styles.axaml" />
+    </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Trainer/Resources.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+    <!-- Each screen's view-model is shown with its view. -->
+    <Application.DataTemplates>
+        <DataTemplate DataType="vm:CalendarViewModel"><v:CalendarView /></DataTemplate>
+        <DataTemplate DataType="vm:WorkoutDetailViewModel"><v:WorkoutDetailView /></DataTemplate>
+        <DataTemplate DataType="vm:RacesViewModel"><v:RacesView /></DataTemplate>
+        <DataTemplate DataType="vm:PlanOverviewViewModel"><v:PlanOverviewView /></DataTemplate>
+        <DataTemplate DataType="vm:ActivitiesViewModel"><v:ActivitiesView /></DataTemplate>
+        <DataTemplate DataType="vm:AnalysisViewModel"><v:AnalysisView /></DataTemplate>
+        <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
+    </Application.DataTemplates>
+</Application>

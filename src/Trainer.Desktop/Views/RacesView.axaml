@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Trainer.Desktop.Views.RacesView">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Races" Classes="h1" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="0,0,0,12"
+                   Text="The plan counts base, build, specialty and taper back from each A race. B races get a 3-day mini taper; C races count as that week's hardest session. A races must be at least 3 months apart." />
+        <Grid ColumnDefinitions="*,360">
+            <DataGrid ItemsSource="{Binding Races}" SelectedItem="{Binding Selected}" Margin="0,0,16,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date}" Width="140" />
+                    <DataGridTextColumn Header="" Binding="{Binding Countdown}" Width="100" />
+                    <DataGridTextColumn Header="Race" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="120" />
+                    <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="80" />
+                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="90" />
+                    <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}" Width="90" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Border Grid.Column="1" Classes="card" VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="{Binding EditorTitle}" Classes="h2" />
+                    <TextBlock Text="Name" Classes="label" />
+                    <TextBox Text="{Binding Name}" />
+                    <TextBlock Text="Date" Classes="label" />
+                    <CalendarDatePicker SelectedDate="{Binding Date}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Event type" Classes="label" />
+                    <ComboBox ItemsSource="{Binding EventTypes}" SelectedValue="{Binding Type}" SelectedValueBinding="{Binding Key}"
+                              DisplayMemberBinding="{Binding Value}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Priority" Classes="label" />
+                    <ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority}" HorizontalAlignment="Stretch" />
+                    <TextBlock Classes="label" Text="{Binding DurationHours, StringFormat='Duration: {0:0.0#} h'}" />
+                    <Slider Minimum="0.5" Maximum="12" TickFrequency="0.25" IsSnapToTickEnabled="True" Value="{Binding DurationHours}" />
+                    <TextBlock Classes="label" Text="{Binding Intensity, StringFormat='Intensity: {0}/10 (1–3 steady, 4–7 mixed, 8–10 very hard)'}" />
+                    <Slider Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Intensity}" />
+                    <Border Classes="banner" Margin="0,12,0,0" IsVisible="{Binding Validation, Converter={StaticResource HasValue}}">
+                        <TextBlock Text="{Binding Validation}" TextWrapping="Wrap" Foreground="#7A5600" />
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="Save" Classes="primary" Command="{Binding SaveCommand}" MinWidth="80" />
+                        <Button Content="New" Command="{Binding NewCommand}" />
+                        <Button Content="Delete" Classes="danger" Command="{Binding DeleteCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

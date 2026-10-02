@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Trainer.Desktop.Views.MainWindow"
+        Title="Cycling Training Planner" Width="1360" Height="860" MinWidth="1000" MinHeight="640"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource Brush.Background}">
+    <Grid ColumnDefinitions="210,*">
+        <!-- Left-hand menu -->
+        <DockPanel Background="{StaticResource Brush.Nav}">
+            <StackPanel DockPanel.Dock="Top" Margin="18,20,18,24">
+                <TextBlock Text="Training Planner" Foreground="White" FontSize="17" FontWeight="SemiBold" />
+                <TextBlock Text="Base · Build · Specialty" Foreground="{StaticResource Brush.NavText}" FontSize="11" Margin="0,2,0,0" />
+            </StackPanel>
+            <TextBlock DockPanel.Dock="Bottom" Margin="18,12" Foreground="{StaticResource Brush.NavText}" FontSize="11" TextWrapping="Wrap"
+                       Text="{Binding Version}" />
+            <ListBox Classes="nav" ItemsSource="{Binding Nav}" SelectedItem="{Binding SelectedNav}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <!-- Screen -->
+        <Grid Grid.Column="1">
+            <ContentControl Content="{Binding Current}" Margin="24,20,24,16" />
+
+            <!-- Toast -->
+            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,24" Padding="16,10" CornerRadius="6"
+                    Background="#E61E2A33" IsVisible="{Binding ToastText, Converter={StaticResource HasValue}}">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="{Binding ToastText}" Foreground="White" MaxWidth="700" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <Button Content="✕" Command="{Binding DismissToastCommand}" Padding="6,0" Background="Transparent" Foreground="White" />
+                </StackPanel>
+            </Border>
+
+            <!-- Busy overlay -->
+            <Grid Background="#66FFFFFF" IsVisible="{Binding IsBusy}">
+                <Border Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                        CornerRadius="6" Padding="24,16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Spacing="10">
+                        <ProgressBar IsIndeterminate="True" Width="220" />
+                        <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

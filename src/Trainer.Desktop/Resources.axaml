@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:infra="using:Trainer.Desktop.Infrastructure">
+    <SolidColorBrush x:Key="Brush.Background" Color="#F3F5F7" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#DCE2E7" />
+    <SolidColorBrush x:Key="Brush.Text" Color="#1E2A33" />
+    <SolidColorBrush x:Key="Brush.Muted" Color="#6A7884" />
+    <SolidColorBrush x:Key="Brush.Accent" Color="#2563A8" />
+    <SolidColorBrush x:Key="Brush.Nav" Color="#1C2731" />
+    <SolidColorBrush x:Key="Brush.NavText" Color="#C5D0D9" />
+    <SolidColorBrush x:Key="Brush.Today" Color="#FFF6DA" />
+    <SolidColorBrush x:Key="Brush.Blocked" Color="#ECEFF2" />
+    <SolidColorBrush x:Key="Brush.Danger" Color="#C53B3B" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#FFF3CD" />
+
+    <infra:StatusBrushConverter x:Key="StatusBrush" />
+    <infra:KindBrushConverter x:Key="KindBrush" />
+    <infra:PhaseBrushConverter x:Key="PhaseBrush" />
+    <infra:HasValueConverter x:Key="HasValue" />
+</ResourceDictionary>

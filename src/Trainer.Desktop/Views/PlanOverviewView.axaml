@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sp="using:ScottPlot.Avalonia"
+             x:Class="Trainer.Desktop.Views.PlanOverviewView">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Plan overview" Classes="h1" />
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Headline}" Classes="muted" Margin="0,0,0,12" />
+
+        <!-- Phase bands: 18 px per week -->
+        <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,12">
+            <ItemsControl ItemsSource="{Binding Blocks}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Height="28" CornerRadius="3" Width="{Binding Width}" ToolTip.Tip="{Binding Tooltip}"
+                                Background="{Binding Phase, Converter={StaticResource PhaseBrush}}">
+                            <TextBlock Text="{Binding Label}" Foreground="White" FontSize="11" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border DockPanel.Dock="Top" Classes="card" Height="260" Padding="4">
+            <sp:AvaPlot x:Name="Chart" />
+        </Border>
+
+        <DataGrid ItemsSource="{Binding Weeks}">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="12">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding Phase, Converter={StaticResource PhaseBrush}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Week of" Binding="{Binding Start}" Width="120" />
+                <DataGridTextColumn Header="Phase" Binding="{Binding Phase}" Width="100" />
+                <DataGridTextColumn Header="Week" Binding="{Binding Type}" Width="90" />
+                <DataGridTextColumn Header="Target hours" Binding="{Binding Hours}" Width="115" />
+                <DataGridTextColumn Header="Planned" Binding="{Binding Planned}" Width="90" />
+                <DataGridTextColumn Header="Target TSS" Binding="{Binding Tss}" Width="100" />
+                <DataGridTextColumn Header="Planned CTL" Binding="{Binding Ctl}" Width="105" />
+                <DataGridTextColumn Header="Race" Binding="{Binding Race}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

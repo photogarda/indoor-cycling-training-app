@@ -8,13 +8,22 @@ public static class ZwiftFolder
     /// <summary>The per-account workouts folder if Zwift is installed, else null.</summary>
     public static string? Find()
     {
-        var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Zwift", "Workouts");
+        var root = Path.Combine(DocumentsFolder(), "Zwift", "Workouts");
         if (!Directory.Exists(root)) return null;
         // Zwift creates one numeric folder per account; pick the most recently used.
         return Directory.EnumerateDirectories(root)
             .Where(d => Path.GetFileName(d).All(char.IsDigit))
             .OrderByDescending(Directory.GetLastWriteTimeUtc)
             .FirstOrDefault() ?? root;
+    }
+
+    /// <summary>Documents folder: on macOS and Linux .NET reports the home folder, so add "Documents".</summary>
+    private static string DocumentsFolder()
+    {
+        var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        if (!OperatingSystem.IsWindows() && !Path.GetFileName(docs.TrimEnd('/')).Equals("Documents", StringComparison.OrdinalIgnoreCase))
+            docs = Path.Combine(docs, "Documents");
+        return docs;
     }
 
     /// <summary>Writes each workout as a .zwo file into a folder. Returns the paths written.</summary>

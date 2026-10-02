@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:Trainer.Desktop.Controls"
+             x:Class="Trainer.Desktop.Views.WorkoutDetailView">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="‹ Back" Command="{Binding GoBackCommand}" VerticalAlignment="Center" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Save ZWO file…" Command="{Binding SaveZwoCommand}" ToolTip.Tip="Zwift workout file (also MyWhoosh, TrainerRoad, zwofactory.com)" />
+                <Button Content="Save FIT file…" Command="{Binding SaveFitCommand}" />
+                <Button Content="Export to Edge" Classes="primary" Command="{Binding ExportToEdgeCommand}" Margin="0" />
+            </StackPanel>
+            <TextBlock Text="{Binding Workout.Name}" Classes="h1" Margin="8,0,0,0" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Classes="muted" Margin="0,0,0,10" />
+
+        <Border DockPanel.Dock="Top" Classes="card">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Classes="h2" Text="{Binding Ftp, StringFormat='Intervals · watts from FTP {0} W on this date (hover for detail)'}" />
+                <c:IntervalGraph Steps="{Binding Steps}" Ftp="{Binding Ftp}" Height="220" />
+            </DockPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,340">
+            <DataGrid ItemsSource="{Binding Rows}" Margin="0,0,12,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Start" Binding="{Binding Start}" Width="80" />
+                    <DataGridTextColumn Header="Length" Binding="{Binding Length}" Width="80" />
+                    <DataGridTextColumn Header="% FTP" Binding="{Binding Target}" Width="100" />
+                    <DataGridTextColumn Header="Watts" Binding="{Binding Watts}" Width="100" />
+                    <DataGridTextColumn Header="Zone" Binding="{Binding Zone}" Width="120" />
+                    <DataGridTextColumn Header="Step" Binding="{Binding Label}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <ScrollViewer Grid.Column="1">
+                <StackPanel>
+                    <Border Classes="card">
+                        <StackPanel>
+                            <TextBlock Text="Options" Classes="h2" />
+                            <CheckBox Content="Indoor (ERG on the trainer)" IsChecked="{Binding Indoor}" IsEnabled="{Binding CanEdit}" />
+                            <CheckBox Content="Locked: the plan engine keeps it as is" IsChecked="{Binding Locked}" IsEnabled="{Binding CanEdit}" />
+                            <TextBlock Text="Duration (h:mm)" Classes="label" />
+                            <DockPanel IsEnabled="{Binding CanEdit}">
+                                <Button DockPanel.Dock="Right" Content="Apply" Command="{Binding ResizeCommand}" Margin="8,0,0,0" />
+                                <TextBox Text="{Binding DurationText}" />
+                            </DockPanel>
+                            <TextBlock Text="Swap for another workout" Classes="label" />
+                            <DockPanel IsEnabled="{Binding CanEdit}">
+                                <Button DockPanel.Dock="Right" Content="Swap" Command="{Binding SwapCommand}" Margin="8,0,0,0" />
+                                <ComboBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SwapTo}" DisplayMemberBinding="{Binding Name}" HorizontalAlignment="Stretch" />
+                            </DockPanel>
+                            <TextBlock Text="Editing locks the workout so regenerating the plan won't change it." Classes="muted" FontSize="11" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Classes="card" IsVisible="{Binding ActivityText, Converter={StaticResource HasValue}}">
+                        <TextBlock Text="{Binding ActivityText}" TextWrapping="Wrap" />
+                    </Border>
+                    <Border Classes="card" IsVisible="{Binding Description, Converter={StaticResource HasValue}}">
+                        <StackPanel>
+                            <TextBlock Text="About" Classes="h2" />
+                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>

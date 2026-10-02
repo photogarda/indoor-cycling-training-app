@@ -1,32 +1,59 @@
 # Cycling Training Planner
 
-A local Windows desktop app (C#, .NET 8, WPF) that turns your race calendar, weekly hours and FTP into a
-day-by-day structured plan, sends each workout to your Garmin Edge as a FIT file (the Edge runs it in ERG
-on the trainer), and imports your rides to track fitness and adapt the plan.
+A local desktop app for **Windows and macOS** (C#, .NET 8, Avalonia UI) that turns your race calendar,
+weekly hours and FTP into a day-by-day structured plan, sends each workout to your Garmin Edge as a FIT file
+(the Edge runs it in ERG on the trainer) or to Zwift as a `.zwo` file, and imports your rides to track
+fitness and adapt the plan.
 
-- **Windows only, local only.** One SQLite file in `%LOCALAPPDATA%\Trainer`, no accounts, no cloud.
+- **Local only.** One SQLite file in your user data folder, no accounts, no cloud.
 - **Rules, not AI.** The plan engine is deterministic and unit-tested; it works with no network.
 - **Garmin does the riding.** The app never talks to the trainer. Workouts go to the Edge over USB.
 
-## Build and run
+## Download
 
-You need Windows 10/11, Visual Studio 2022 (17.8 or later) with the **.NET desktop development** workload,
-or just the .NET 8 SDK.
+Every push builds ready-to-run apps on GitHub: open the repository's **Actions** tab, pick the latest
+green **build** run and download from **Artifacts**:
 
-1. Open `Trainer.sln` in Visual Studio.
-2. Set **Trainer.App** as the startup project and press F5.
+| Artifact | For |
+| --- | --- |
+| `Trainer-windows-x64` | Windows 10/11: unzip and run `Trainer.exe` |
+| `Trainer-mac-apple-silicon` | Mac with an M1/M2/M3/M4 chip (most Mac minis since 2020) |
+| `Trainer-mac-intel` | older Intel Macs |
 
-From a terminal:
+Nothing else needs installing: .NET is built in.
 
-```powershell
-dotnet test tests\Trainer.Tests      # engine, maths, database and FIT tests
-dotnet run --project src\Trainer.App  # start the app
+### Mac: first launch
+
+1. Download `Trainer-mac-apple-silicon`, double-click the zip in Downloads (it may unzip twice), and drag
+   **Trainer.app** into **Applications**.
+2. The app isn't notarised by Apple, so the first time **right-click Trainer.app → Open → Open**.
+   If macOS still says it "is damaged" or "can't be opened", open Terminal and run
+   `xattr -dr com.apple.quarantine /Applications/Trainer.app`, then open it again.
+3. After that it opens normally from Launchpad or the Dock.
+
+### Windows: first launch
+
+Unzip, run `Trainer.exe`; if SmartScreen appears, click **More info → Run anyway**.
+
+## Build from source
+
+Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows or macOS). Then:
+
+```bash
+dotnet test tests/Trainer.Tests                # engine, maths, database, FIT and ZWO tests
+dotnet run --project src/Trainer.Desktop       # start the app
 ```
 
-To make a single `Trainer.exe` you can copy to any PC (no .NET install needed), run
-`powershell -ExecutionPolicy Bypass -File build\publish.ps1`. The exe lands in `publish\`. To build an
-installer, compile `build\Trainer.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php). The GitHub
-Actions workflow builds and tests on Windows, and uploads `Trainer.exe` as an artifact.
+On Windows you can also open `Trainer.sln` in Visual Studio 2022 and press F5 (set **Trainer.Desktop**
+as the startup project); on a Mac, JetBrains Rider or VS Code work.
+
+Packaging:
+
+- **Mac:** `./build/package-mac.sh` (Apple Silicon) or `./build/package-mac.sh osx-x64` (Intel) makes
+  `publish/mac/Trainer.app`, signed ad hoc so it runs on your own Mac.
+- **Windows:** `powershell -ExecutionPolicy Bypass -File build\publish.ps1` makes a single
+  `publish\Trainer.exe`; compile `build\Trainer.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php)
+  for an installer.
 
 ## First run
 
@@ -55,9 +82,14 @@ The app opens on **Settings**:
 - **Workouts → Edge:** the app writes FIT workout files with power targets in watts into
   `Garmin\NewFiles`. Unplug the Edge; it imports them (Training → Workouts) and runs them in ERG.
 - **Rides → app:** **Import from Edge** copies new files from `Garmin\Activity`.
-- Newer Edges connect as **MTP** devices rather than drive letters. The app finds both, using the
-  MediaDevices package for MTP. If neither works, the app can save the FIT files to a folder so you can
-  copy them across by hand.
+- Newer Edges connect as **MTP** devices rather than drives. On **Windows** the app finds both (MTP through
+  the MediaDevices package).
+- On a **Mac**, Edges that show up in Finder as a drive (under `/Volumes`) work directly. macOS can't open
+  MTP devices, so for newer Edges: use **Save FIT file…** or **Send week to Edge** (which then offers to
+  save the files to a folder) and copy them into `Garmin/NewFiles` with a free tool such as
+  [OpenMTP](https://openmtp.ganeshrvel.com/); for rides, download them from Garmin Connect into the
+  watched folder.
+- If the Edge can't be reached, the app saves the FIT files to a folder so you can copy them by hand.
 - **Watched folder:** point it at the folder where you download FIT files from Garmin Connect. New files
   are imported automatically while the app is open.
 
@@ -86,7 +118,12 @@ file wins.
 
 ### Your data
 
-Everything is in `%LOCALAPPDATA%\Trainer`: `trainer.db` and the `fit` folder of imported rides.
+Everything is in one folder: `trainer.db` and the `fit` folder of imported rides.
+
+- Windows: `%LOCALAPPDATA%\Trainer`
+- macOS: `~/Library/Application Support/Trainer`
+
+To move from one computer to another, use **Back up…** on one and **Restore…** on the other.
 Settings → Data has **Back up…** (zip) and **Restore…**.
 
 ## How the plan is built
@@ -150,7 +187,7 @@ own workouts are picked by the plan engine like the built-in ones.
 | `Trainer.Core` | Models, zones, NP/TSS/PMC maths, workout library, plan engine, adaptation rules. No UI, no I/O, so a future Android client can reuse it. |
 | `Trainer.Data` | SQLite through EF Core (10 tables, migrations), and `TrainerService`, which every screen uses. |
 | `Trainer.Integrations` | FIT workout writer and activity reader (Garmin FIT SDK), Edge drive and MTP access, watched folder, Strava client. |
-| `Trainer.App` | WPF screens, MVVM view-models (CommunityToolkit.Mvvm), ScottPlot charts. |
+| `Trainer.Desktop` | Avalonia UI screens (Windows, macOS, Linux), MVVM view-models (CommunityToolkit.Mvvm), ScottPlot charts. |
 | `Trainer.Tests` | xUnit: engine on fixed calendars (one A race, two A races, A + B + C, no race), maths, compliance, database, FIT round-trips, Edge folder sync. |
 
 ## Status
@@ -162,8 +199,9 @@ real hardware or accounts:
   FIT files decode correctly with the Garmin SDK, and drive-letter copying is tested.
 - **Milestone 8:** a Strava sync with a real API application. Stream parsing is tested; the OAuth flow
   has only been built, not run.
-- **The WPF screens** compile, but they were written without being run, so expect some layout polish
-  on the first run.
+- **The app on a real Mac and Windows PC.** Every screen has been rendered and checked with seeded data
+  (headless, with the same Skia renderer the app uses), and the macOS and Windows packages build, but
+  nobody has clicked through them on a real machine yet.
 
 Open decisions from the build plan: which Edge model, which race is the first A race, Saturday or Sunday
 for the long ride (it's a setting), an optional AI step to explain plans, and English or Latvian for the UI.

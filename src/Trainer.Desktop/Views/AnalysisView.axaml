@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sp="using:ScottPlot.Avalonia"
+             x:Class="Trainer.Desktop.Views.AnalysisView">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                <TextBlock Text="Show last" VerticalAlignment="Center" Classes="muted" />
+                <ComboBox ItemsSource="{Binding Ranges}" SelectedItem="{Binding RangeDays}" Width="100" />
+                <TextBlock Text="days" VerticalAlignment="Center" Classes="muted" />
+            </StackPanel>
+            <TextBlock Text="Analysis" Classes="h1" Margin="0" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding FormText}" Margin="0,0,0,10" />
+
+        <Grid RowDefinitions="3*,2*" ColumnDefinitions="3*,2*">
+            <Border Grid.ColumnSpan="2" Classes="card" Padding="4">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Performance management (CTL fitness · ATL fatigue · TSB form)" Classes="h2" Margin="10,6,0,0" />
+                    <sp:AvaPlot x:Name="Pmc" />
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="1" Classes="card" Padding="4" Margin="0,0,12,0">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="10,6,6,0">
+                        <Button DockPanel.Dock="Right" Content="Use estimate as FTP" Command="{Binding UseEstimateCommand}" Margin="0"
+                                IsVisible="{Binding Estimate, Converter={StaticResource HasValue}}" />
+                        <StackPanel>
+                            <TextBlock Text="Power curve: last 6 weeks vs all time" Classes="h2" Margin="0" />
+                            <TextBlock Text="{Binding FtpText}" Classes="muted" FontSize="11" />
+                        </StackPanel>
+                    </DockPanel>
+                    <sp:AvaPlot x:Name="Curve" />
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="1" Classes="card">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Weekly compliance" Classes="h2" />
+                    <DataGrid ItemsSource="{Binding Compliance}" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Week" Binding="{Binding Week}" Width="75" />
+                            <DataGridTextColumn Header="Plan" Binding="{Binding Planned}" Width="65" />
+                            <DataGridTextColumn Header="Actual" Binding="{Binding Actual}" Width="72" />
+                            <DataGridTemplateColumn Header="%" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="4,0">
+                                            <ProgressBar Value="{Binding Fraction}" Maximum="1.2" Height="14" MinWidth="0" Foreground="#3FAE6A" Background="#ECEFF2" />
+                                            <TextBlock Text="{Binding Percent}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Workouts" Binding="{Binding Workouts}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>
