@@ -50,12 +50,37 @@ public partial class DayCell : ObservableObject
     public bool IsBlocked => Blocked is not null;
     public string DayLabel => Date.Day == 1 ? Date.ToString("d MMM", CultureInfo.CurrentCulture) : Date.Day.ToString(CultureInfo.CurrentCulture);
     public string WeekDayLabel => Date.ToString("ddd d MMM", CultureInfo.CurrentCulture);
-    public PlanWeek? WeekInfo { get; init; }
-    public bool ShowWeekInfo => WeekInfo is not null && Date.DayOfWeek == DayOfWeek.Monday;
-    public string WeekInfoLabel => WeekInfo is null ? "" : $"{WeekInfo.Phase}{(WeekInfo.WeekType == WeekType.Recovery ? " · rec" : "")}";
     public ObservableCollection<CalendarWorkout> Workouts { get; } = [];
     public ObservableCollection<CalendarRace> Races { get; } = [];
     public ObservableCollection<CalendarActivity> Activities { get; } = [];
+}
+
+/// <summary>One calendar row: seven days plus the week's prescribed and done totals.</summary>
+public class CalendarWeek
+{
+    public required DateOnly Start { get; init; }
+    public List<DayCell> Days { get; } = [];
+    public PlanWeek? Plan { get; init; }
+    public double PlannedHours { get; init; }
+    public double PlannedTss { get; init; }
+    public double DoneHours { get; init; }
+    public double DoneTss { get; init; }
+    public bool Started { get; init; }
+
+    public string PhaseLabel => Plan is null ? "" : $"{Plan.Phase}{(Plan.WeekType == WeekType.Recovery && Plan.Phase != Phase.Recovery ? " · recovery" : "")}";
+    public string PlannedText => PlannedHours > 0 ? $"{Hm(PlannedHours)} h · {PlannedTss:0} TSS" : "—";
+    public string DoneText => Started ? $"{Hm(DoneHours)} h · {DoneTss:0} TSS" : "—";
+
+    private static string Hm(double hours)
+    {
+        var minutes = (int)Math.Round(hours * 60);
+        return $"{minutes / 60}:{minutes % 60:00}";
+    }
+    /// <summary>Done TSS as a share of prescribed, for the bar (capped at 120 %).</summary>
+    public double DoneFraction => PlannedTss > 0 ? Math.Min(1.2, DoneTss / PlannedTss) : 0;
+    public string PercentText => Started && PlannedTss > 0 ? $"{DoneTss / PlannedTss * 100:0} %" : "";
+    public string Tooltip => $"Week of {Start:d MMM}" + (Plan is null ? "" : $" · {PhaseLabel} · target {Plan.TargetHours:0.#} h") +
+                             $"\nPrescribed: {PlannedText}\nDone: {DoneText}";
 }
 
 public partial class CalendarViewModel : ViewModelBase
@@ -68,8 +93,7 @@ public partial class CalendarViewModel : ViewModelBase
     [ObservableProperty] private string _weekSummary = "";
     [ObservableProperty] private string? _notes;
 
-    public ObservableCollection<DayCell> Days { get; } = [];
-    public string[] DayNames { get; } = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    public ObservableCollection<CalendarWeek> Weeks { get; } = [];
 
     public bool WeekMode
     {
@@ -103,24 +127,40 @@ public partial class CalendarViewModel : ViewModelBase
 
         var data = Trainer.GetCalendar(from, to);
         var weeks = Trainer.GetPlanOverview().Weeks.ToDictionary(w => w.WeekStart);
-        Days.Clear();
-        for (var d = from; d <= to; d = d.AddDays(1))
+        Weeks.Clear();
+        for (var ws = from; ws <= to; ws = ws.AddDays(7))
         {
-            var day = d;
-            weeks.TryGetValue(PlanEngine.WeekStart(day), out var wk);
-            var cell = new DayCell
+            var we = ws.AddDays(6);
+            weeks.TryGetValue(ws, out var wk);
+            var planned = data.Workouts.Where(w => w.Date >= ws && w.Date <= we).ToList();
+            var done = data.Activities.Where(a => a.Date >= ws && a.Date <= we).ToList();
+            var week = new CalendarWeek
             {
-                Date = day,
-                IsToday = day == today,
-                IsPast = day < today,
-                IsOtherMonth = MonthMode && day.Month != Anchor.Month,
-                Blocked = data.BlockedDays.FirstOrDefault(b => b.Date == day),
-                WeekInfo = wk,
+                Start = ws,
+                Plan = wk,
+                PlannedHours = planned.Sum(w => w.DurationSec) / 3600.0,
+                PlannedTss = planned.Sum(w => w.Tss),
+                DoneHours = done.Sum(a => a.DurationSec) / 3600.0,
+                DoneTss = done.Sum(a => a.Tss),
+                Started = ws <= today,
             };
-            foreach (var r in data.Races.Where(r => r.Date == day)) cell.Races.Add(new CalendarRace(r));
-            foreach (var w in data.Workouts.Where(w => w.Date == day)) cell.Workouts.Add(new CalendarWorkout(w));
-            foreach (var a in data.Activities.Where(a => a.Date == day)) cell.Activities.Add(new CalendarActivity(a));
-            Days.Add(cell);
+            for (var day = ws; day <= we; day = day.AddDays(1))
+            {
+                var d = day;
+                var cell = new DayCell
+                {
+                    Date = d,
+                    IsToday = d == today,
+                    IsPast = d < today,
+                    IsOtherMonth = MonthMode && d.Month != Anchor.Month,
+                    Blocked = data.BlockedDays.FirstOrDefault(b => b.Date == d),
+                };
+                foreach (var r in data.Races.Where(r => r.Date == d)) cell.Races.Add(new CalendarRace(r));
+                foreach (var w in data.Workouts.Where(w => w.Date == d)) cell.Workouts.Add(new CalendarWorkout(w));
+                foreach (var a in data.Activities.Where(a => a.Date == d)) cell.Activities.Add(new CalendarActivity(a));
+                week.Days.Add(cell);
+            }
+            Weeks.Add(week);
         }
 
         var thisWeek = PlanEngine.WeekStart(MonthMode ? today : Anchor);

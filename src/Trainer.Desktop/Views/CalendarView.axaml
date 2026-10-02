@@ -54,7 +54,9 @@
         <TextBlock DockPanel.Dock="Bottom" Classes="muted" FontSize="11" Margin="2,6,0,0"
                    Text="Double-click a workout to open it · drag it to another day to move it (it gets locked) · right-click a day to block or unblock it.   Green = done · amber = partial · red = missed." />
 
-        <UniformGrid DockPanel.Dock="Top" Columns="7" Margin="0,0,0,2">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,170" Margin="0,0,0,2">
+        <TextBlock Grid.Column="1" Text="Week" Classes="muted" Margin="8,0" />
+        <UniformGrid Columns="7">
             <TextBlock Text="Mon" Classes="muted" Margin="6,0" />
             <TextBlock Text="Tue" Classes="muted" Margin="6,0" />
             <TextBlock Text="Wed" Classes="muted" Margin="6,0" />
@@ -63,25 +65,47 @@
             <TextBlock Text="Sat" Classes="muted" Margin="6,0" />
             <TextBlock Text="Sun" Classes="muted" Margin="6,0" />
         </UniformGrid>
+        </Grid>
 
-        <ItemsControl ItemsSource="{Binding Days}">
+        <!-- One row per week: seven days, then the week's totals. -->
+        <ItemsControl ItemsSource="{Binding Weeks}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Columns="7" />
+                    <UniformGrid Columns="1" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
+                <Grid ColumnDefinitions="*,170">
+                <Border Grid.Column="1" Margin="2" Padding="8,6" CornerRadius="5" BorderThickness="1" BorderBrush="{StaticResource Brush.Border}"
+                        Background="#F8FAFB" ToolTip.Tip="{Binding Tooltip}">
+                    <StackPanel Spacing="2">
+                        <Border CornerRadius="3" Padding="5,1" HorizontalAlignment="Left" IsVisible="{Binding Plan, Converter={StaticResource HasValue}}"
+                                Background="{Binding Plan.Phase, Converter={StaticResource PhaseBrush}}">
+                            <TextBlock Text="{Binding PhaseLabel}" FontSize="10" Foreground="White" />
+                        </Border>
+                        <TextBlock Text="Prescribed" FontSize="10" Foreground="{StaticResource Brush.Muted}" Margin="0,3,0,0" />
+                        <TextBlock Text="{Binding PlannedText}" FontSize="12" FontWeight="SemiBold" />
+                        <TextBlock Text="Done" FontSize="10" Foreground="{StaticResource Brush.Muted}" Margin="0,3,0,0" />
+                        <TextBlock Text="{Binding DoneText}" FontSize="12" FontWeight="SemiBold" Foreground="#226B3D" />
+                        <Grid IsVisible="{Binding Started}" Margin="0,3,0,0">
+                            <ProgressBar Value="{Binding DoneFraction}" Maximum="1.2" Height="12" MinWidth="0" Foreground="#3FAE6A" Background="#E3E8EC" />
+                            <TextBlock Text="{Binding PercentText}" FontSize="9.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <ItemsControl ItemsSource="{Binding Days}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="7" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                <DataTemplate>
                     <Border Classes="day" Classes.today="{Binding IsToday}" Classes.blocked="{Binding IsBlocked}" Classes.other="{Binding IsOtherMonth}"
                             DragDrop.AllowDrop="True">
                         <DockPanel>
-                            <DockPanel DockPanel.Dock="Top">
-                                <Border DockPanel.Dock="Right" CornerRadius="3" Padding="4,0" IsVisible="{Binding ShowWeekInfo}"
-                                        Background="{Binding WeekInfo.Phase, Converter={StaticResource PhaseBrush}}">
-                                    <TextBlock Text="{Binding WeekInfoLabel}" FontSize="10" Foreground="White" />
-                                </Border>
-                                <TextBlock Text="{Binding DayLabel}" FontSize="12" FontWeight="SemiBold" />
-                            </DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding DayLabel}" FontSize="12" FontWeight="SemiBold" />
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <StackPanel>
                                     <TextBlock Text="{Binding Blocked.Reason, StringFormat='⛔ {0}'}" FontSize="11" Foreground="{StaticResource Brush.Muted}"
@@ -129,6 +153,10 @@
                             </ScrollViewer>
                         </DockPanel>
                     </Border>
+                </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
