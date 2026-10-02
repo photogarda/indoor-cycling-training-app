@@ -10,6 +10,13 @@ namespace Trainer.Desktop.Views;
 /// <summary>Shared ScottPlot styling: readable fonts, a clean legend, short dates, race labels along the top.</summary>
 public static class ChartStyle
 {
+    /// <summary>
+    /// Charts use the Inter font shipped with the app. ScottPlot places text from the font's own metrics, and
+    /// system fonts (Helvetica / San Francisco on macOS) report metrics that push labels up so their tops get
+    /// clipped. One bundled font looks and lines up the same on Windows, macOS and Linux.
+    /// </summary>
+    public const string FontName = "Trainer Inter";
+
     private static bool Dark => Trainer.Desktop.Infrastructure.ThemeManager.IsDark;
     private static Color Muted => Palette.Plot(Dark ? "#8D9BA7" : "#6A7884");
     private static Color GridLine => Palette.Plot(Dark ? "#26313B" : "#E6EAEE");
@@ -20,10 +27,44 @@ public static class ChartStyle
     public static Color Ink => Palette.Plot(Dark ? "#E3E9EE" : "#1E2A33");
 
     /// <summary>One-time control setup: no debug overlay on double-click.</summary>
-    public static void Init(AvaPlot control) => control.UserInputProcessor.DoubleLeftClickBenchmark(false);
+    public static void Init(AvaPlot control)
+    {
+        RegisterFont();
+        control.UserInputProcessor.DoubleLeftClickBenchmark(false);
+    }
+
+    private static bool _fontRegistered;
+    private static void RegisterFont()
+    {
+        if (_fontRegistered) return;
+        _fontRegistered = true;
+        Fonts.FontResolvers.Insert(0, new EmbeddedInterResolver());
+        Fonts.Default = FontName;
+    }
+
+    /// <summary>Serves the Inter files embedded in Avalonia.Fonts.Inter to ScottPlot.</summary>
+    private sealed class EmbeddedInterResolver : IFontResolver
+    {
+        public SkiaSharp.SKTypeface? CreateTypeface(string fontName, FontWeight weight, FontSlant slant, FontSpacing spacing)
+        {
+            if (fontName != FontName) return null;
+            var file = weight >= FontWeight.SemiBold ? "Inter-SemiBold.ttf" : "Inter-Regular.ttf";
+            try
+            {
+                using var stream = Avalonia.Platform.AssetLoader.Open(new Uri($"avares://Avalonia.Fonts.Inter/Assets/{file}"));
+                return SkiaSharp.SKTypeface.FromStream(stream);
+            }
+            catch { return null; } // falls back to ScottPlot's system font
+        }
+
+        public SkiaSharp.SKTypeface? CreateTypeface(string fontName, bool bold, bool italic) =>
+            CreateTypeface(fontName, bold ? FontWeight.Bold : FontWeight.Normal, italic ? FontSlant.Italic : FontSlant.Upright, FontSpacing.Normal);
+    }
 
     public static void Apply(Plot plot)
     {
+        RegisterFont();
+        plot.Font.Set(FontName);
         plot.Benchmark.IsVisible = false;
         plot.FigureBackground.Color = Surface;
         plot.DataBackground.Color = Surface;
@@ -40,6 +81,7 @@ public static class ChartStyle
         }
 
         // Legend: compact, white, thin border, no shadow, enough padding that text isn't clipped.
+        plot.Legend.FontName = FontName;
         plot.Legend.FontSize = 12;
         plot.Legend.FontColor = Text;
         plot.Legend.BackgroundColor = Surface.WithAlpha(235);
@@ -60,6 +102,7 @@ public static class ChartStyle
             var long_ = (to - from).TotalDays > 400;
             auto.LabelFormatter = d => d.ToString(long_ ? "MMM yyyy" : "d MMM", System.Globalization.CultureInfo.CurrentCulture);
         }
+        axis.TickLabelStyle.FontName = FontName;
         axis.TickLabelStyle.FontSize = 12;
         axis.TickLabelStyle.ForeColor = Muted;
     }
@@ -78,6 +121,7 @@ public static class ChartStyle
             line.LinePattern = LinePattern.Dashed;
             line.Text = $"{r.Priority} · {Shorten(r.Name)}";
             line.LabelOppositeAxis = true;
+            line.LabelStyle.FontName = FontName;
             line.LabelStyle.FontSize = 11;
             line.LabelStyle.Bold = false;
             line.LabelStyle.ForeColor = Colors.White;
