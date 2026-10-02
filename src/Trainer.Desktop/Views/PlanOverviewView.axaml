@@ -39,13 +39,13 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Week of" Binding="{Binding Start}" Width="120" />
+                <DataGridTextColumn Header="Week of" Binding="{Binding Start}" Width="125" />
                 <DataGridTextColumn Header="Phase" Binding="{Binding Phase}" Width="100" />
                 <DataGridTextColumn Header="Week" Binding="{Binding Type}" Width="90" />
-                <DataGridTextColumn Header="Target hours" Binding="{Binding Hours}" Width="115" />
+                <DataGridTextColumn Header="Target hours" Binding="{Binding Hours}" Width="125" />
                 <DataGridTextColumn Header="Planned" Binding="{Binding Planned}" Width="90" />
-                <DataGridTextColumn Header="Target TSS" Binding="{Binding Tss}" Width="100" />
-                <DataGridTextColumn Header="Planned CTL" Binding="{Binding Ctl}" Width="105" />
+                <DataGridTextColumn Header="Target TSS" Binding="{Binding Tss}" Width="115" />
+                <DataGridTextColumn Header="Planned CTL" Binding="{Binding Ctl}" Width="125" />
                 <DataGridTextColumn Header="Race" Binding="{Binding Race}" Width="*" />
             </DataGrid.Columns>
         </DataGrid>

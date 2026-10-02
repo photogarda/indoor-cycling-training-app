@@ -12,6 +12,7 @@ public partial class PlanOverviewView : UserControl
     public PlanOverviewView()
     {
         InitializeComponent();
+        ChartStyle.Init(Chart);
         DataContextChanged += (_, _) =>
         {
             if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
@@ -60,8 +61,13 @@ public partial class PlanOverviewView : UserControl
             actual.LineWidth = 2;
             actual.MarkerSize = 0;
         }
-        ChartStyle.MarkRaces(plot, vm.Races);
-        plot.Axes.DateTimeTicksBottom();
+        var xs = vm.Weeks.Select(w => w.Week.WeekStart.ToDateTime(TimeOnly.MinValue))
+            .Concat(vm.ActualLoads.Select(l => l.Date.ToDateTime(TimeOnly.MinValue))).DefaultIfEmpty(DateTime.Today).ToList();
+        var first = xs.Min();
+        var last = xs.Max();
+        // Only races inside the chart, so labels don't pile up at the edges.
+        ChartStyle.MarkRaces(plot, vm.Races.Where(r => r.Date.ToDateTime(TimeOnly.MinValue) >= first && r.Date.ToDateTime(TimeOnly.MinValue) <= last.AddDays(7)));
+        ChartStyle.DateAxis(plot, first, last);
         plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
         plot.Axes.AutoScale();
         Chart.Refresh();

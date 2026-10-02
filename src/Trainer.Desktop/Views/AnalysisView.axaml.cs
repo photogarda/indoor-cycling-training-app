@@ -13,6 +13,8 @@ public partial class AnalysisView : UserControl
     public AnalysisView()
     {
         InitializeComponent();
+        ChartStyle.Init(Pmc);
+        ChartStyle.Init(Curve);
         DataContextChanged += (_, _) =>
         {
             if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
@@ -67,7 +69,7 @@ public partial class AnalysisView : UserControl
             plot.Add.Annotation("Import rides to see fitness, fatigue and form.");
         }
         ChartStyle.MarkRaces(plot, vm.Races);
-        plot.Axes.DateTimeTicksBottom();
+        ChartStyle.DateAxis(plot, vm.Loads.FirstOrDefault()?.Date.ToDateTime(TimeOnly.MinValue) ?? DateTime.Today.AddDays(-vm.RangeDays), DateTime.Today);
         plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
         plot.Axes.AutoScale();
         Pmc.Refresh();
