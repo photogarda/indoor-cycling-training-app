@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
+using Trainer.Desktop.Infrastructure;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Trainer.Integrations;
@@ -93,6 +94,18 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void DismissToast() => ToastText = null;
+
+    /// <summary>Sun in dark mode (click for light), moon in light mode (click for dark).</summary>
+    public string ThemeIcon => ThemeManager.IsDark ? "☀" : "☾";
+    public string ThemeTip => ThemeManager.IsDark ? "Switch to light mode" : "Switch to dark mode";
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        ThemeManager.Toggle();
+        OnPropertyChanged(nameof(ThemeIcon));
+        OnPropertyChanged(nameof(ThemeTip));
+    }
 
     private void ReloadCurrent() => Current?.Load();
 }

@@ -41,9 +41,18 @@ public sealed class IntervalGraph : Control
 
     private List<(double X0, double X1, WorkoutStep Step, int Start)> _hit = [];
     private static readonly Typeface Face = new("Inter");
-    private static readonly IBrush LabelBrush = new SolidColorBrush(Color.Parse("#6A7884"));
-    private static readonly IPen GridPen = new Pen(new SolidColorBrush(Color.Parse("#DCE2E7")));
-    private static readonly IPen FtpPen = new Pen(new SolidColorBrush(Color.Parse("#556068")), dashStyle: DashStyle.Dash);
+    private static readonly IBrush LabelLight = new SolidColorBrush(Color.Parse("#6A7884"));
+    private static readonly IBrush LabelDark = new SolidColorBrush(Color.Parse("#8D9BA7"));
+    private static readonly IPen GridLight = new Pen(new SolidColorBrush(Color.Parse("#DCE2E7")));
+    private static readonly IPen GridDark = new Pen(new SolidColorBrush(Color.Parse("#2C3742")));
+    private static readonly IPen FtpLight = new Pen(new SolidColorBrush(Color.Parse("#556068")), dashStyle: DashStyle.Dash);
+    private static readonly IPen FtpDark = new Pen(new SolidColorBrush(Color.Parse("#AEBAC4")), dashStyle: DashStyle.Dash);
+    private bool Dark => ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+    private IBrush LabelBrush => Dark ? LabelDark : LabelLight;
+    private IPen GridPen => Dark ? GridDark : GridLight;
+    private IPen FtpPen => Dark ? FtpDark : FtpLight;
+
+    public IntervalGraph() => ActualThemeVariantChanged += (_, _) => InvalidateVisual();
 
     public override void Render(DrawingContext dc)
     {
@@ -97,7 +106,7 @@ public sealed class IntervalGraph : Control
         }
     }
 
-    private static void Text(DrawingContext dc, string s, Point at) =>
+    private void Text(DrawingContext dc, string s, Point at) =>
         dc.DrawText(new FormattedText(s, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, Face, 10, LabelBrush), at);
 
     protected override void OnPointerMoved(PointerEventArgs e)

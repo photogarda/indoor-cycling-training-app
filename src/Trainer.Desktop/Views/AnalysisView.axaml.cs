@@ -15,6 +15,7 @@ public partial class AnalysisView : UserControl
         InitializeComponent();
         ChartStyle.Init(Pmc);
         ChartStyle.Init(Curve);
+        ThemeManager.Changed += (_, _) => Draw();
         DataContextChanged += (_, _) =>
         {
             if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
@@ -45,7 +46,7 @@ public partial class AnalysisView : UserControl
         {
             var xs = vm.Loads.Select(l => l.Date.ToDateTime(TimeOnly.MinValue).ToOADate()).ToArray();
             var tss = plot.Add.Bars(xs, vm.Loads.Select(l => l.Tss).ToArray());
-            tss.Color = Palette.Plot("#C9D3DB");
+            tss.Color = Palette.Plot(ThemeManager.IsDark ? "#34414D" : "#C9D3DB");
             tss.LegendText = "Daily TSS";
             foreach (var bar in tss.Bars)
             {
@@ -57,11 +58,11 @@ public partial class AnalysisView : UserControl
             fatigueZone.FillStyle.Color = Palette.Plot("#DE3B3B").WithAlpha(18);
             fatigueZone.LineStyle.Width = 0;
 
-            Line(plot, xs, vm.Loads.Select(l => l.Ctl).ToArray(), "CTL (fitness)", "#2563A8", 2.5f);
+            Line(plot, xs, vm.Loads.Select(l => l.Ctl).ToArray(), "CTL (fitness)", ThemeManager.IsDark ? "#5AA0EA" : "#2563A8", 2.5f);
             Line(plot, xs, vm.Loads.Select(l => l.Atl).ToArray(), "ATL (fatigue)", "#DE3B3B", 1.5f);
             Line(plot, xs, vm.Loads.Select(l => l.Tsb).ToArray(), "TSB (form)", "#E9A100", 1.5f);
             var zero = plot.Add.HorizontalLine(0);
-            zero.Color = Palette.Plot("#9EA7AD");
+            zero.Color = Palette.Plot(ThemeManager.IsDark ? "#55626D" : "#9EA7AD");
             zero.LineWidth = 1;
         }
         else
@@ -101,8 +102,8 @@ public partial class AnalysisView : UserControl
             s.LineWidth = 2;
             s.MarkerSize = 5;
         }
-        Series(vm.CurveAllTime, "All time", "#9EA7AD");
-        Series(vm.CurveSixWeeks, "Last 6 weeks", "#2563A8");
+        Series(vm.CurveAllTime, "All time", ThemeManager.IsDark ? "#6B7883" : "#9EA7AD");
+        Series(vm.CurveSixWeeks, "Last 6 weeks", ThemeManager.IsDark ? "#5AA0EA" : "#2563A8");
         // Label a readable subset; every duration still has a point.
         int[] labelled = [5, 30, 60, 300, 1200, 3600];
         var tickIdx = Enumerable.Range(0, durations.Length).Where(i => labelled.Contains(durations[i])).ToArray();

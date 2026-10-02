@@ -20,6 +20,7 @@ public partial class App : Application
         {
             try
             {
+                ThemeManager.Load();
                 Services = AppServices.Create();
                 MainWindow = new MainWindow();
             }

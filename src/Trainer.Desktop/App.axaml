@@ -3,7 +3,6 @@
              xmlns:vm="using:Trainer.Desktop.ViewModels"
              xmlns:v="using:Trainer.Desktop.Views"
              x:Class="Trainer.Desktop.App"
-             RequestedThemeVariant="Light"
              Name="Training Planner">
     <Application.Styles>
         <FluentTheme />

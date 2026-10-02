@@ -77,6 +77,11 @@ The app opens on **Settings**:
 | Analysis | PMC (CTL, ATL, TSB) with races marked, power curve for the last 6 weeks against all time, weekly compliance, FTP estimate from rides. |
 | Settings | Athlete, FTP history, Edge and watched folder, Strava, workout library editor, backup and restore. |
 
+### Light and dark mode
+
+The ☀/☾ button at the bottom of the sidebar switches between light and dark. The choice is remembered
+(`ui-settings.json` in the data folder); until you pick one, the app follows your Mac or Windows setting.
+
 ### Garmin Edge
 
 - **Workouts → Edge:** the app writes FIT workout files with power targets in watts into

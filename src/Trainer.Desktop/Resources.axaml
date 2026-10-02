@@ -1,18 +1,71 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:infra="using:Trainer.Desktop.Infrastructure">
-    <SolidColorBrush x:Key="Brush.Background" Color="#F3F5F7" />
-    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Brush.Border" Color="#DCE2E7" />
-    <SolidColorBrush x:Key="Brush.Text" Color="#1E2A33" />
-    <SolidColorBrush x:Key="Brush.Muted" Color="#6A7884" />
-    <SolidColorBrush x:Key="Brush.Accent" Color="#2563A8" />
-    <SolidColorBrush x:Key="Brush.Nav" Color="#1C2731" />
-    <SolidColorBrush x:Key="Brush.NavText" Color="#C5D0D9" />
-    <SolidColorBrush x:Key="Brush.Today" Color="#FFF6DA" />
-    <SolidColorBrush x:Key="Brush.Blocked" Color="#ECEFF2" />
-    <SolidColorBrush x:Key="Brush.Danger" Color="#C53B3B" />
-    <SolidColorBrush x:Key="Brush.Warning" Color="#FFF3CD" />
+    <!-- Colours per theme. Views use {DynamicResource ...} so switching sun/moon updates everything live. -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="Brush.Background" Color="#F3F5F7" />
+            <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="Brush.Subtle" Color="#F8FAFB" />
+            <SolidColorBrush x:Key="Brush.Border" Color="#DCE2E7" />
+            <SolidColorBrush x:Key="Brush.Text" Color="#1E2A33" />
+            <SolidColorBrush x:Key="Brush.Muted" Color="#6A7884" />
+            <SolidColorBrush x:Key="Brush.Accent" Color="#2563A8" />
+            <SolidColorBrush x:Key="Brush.AccentHover" Color="#1D5290" />
+            <SolidColorBrush x:Key="Brush.Nav" Color="#1C2731" />
+            <SolidColorBrush x:Key="Brush.NavText" Color="#C5D0D9" />
+            <SolidColorBrush x:Key="Brush.NavHover" Color="#26333E" />
+            <SolidColorBrush x:Key="Brush.NavSelected" Color="#2C3A46" />
+            <SolidColorBrush x:Key="Brush.Today" Color="#FFF6DA" />
+            <SolidColorBrush x:Key="Brush.TodayBorder" Color="#E9B949" />
+            <SolidColorBrush x:Key="Brush.Blocked" Color="#ECEFF2" />
+            <SolidColorBrush x:Key="Brush.Danger" Color="#C53B3B" />
+            <SolidColorBrush x:Key="Brush.Warning" Color="#FFF3CD" />
+            <SolidColorBrush x:Key="Brush.WarningBorder" Color="#F0D88A" />
+            <SolidColorBrush x:Key="Brush.WarningText" Color="#7A5600" />
+            <SolidColorBrush x:Key="Brush.RaceBg" Color="#FDE7E9" />
+            <SolidColorBrush x:Key="Brush.RaceBorder" Color="#E35D6A" />
+            <SolidColorBrush x:Key="Brush.RaceText" Color="#9C2433" />
+            <SolidColorBrush x:Key="Brush.RideBg" Color="#E5F4EA" />
+            <SolidColorBrush x:Key="Brush.RideText" Color="#226B3D" />
+            <SolidColorBrush x:Key="Brush.Track" Color="#E3E8EC" />
+            <SolidColorBrush x:Key="Brush.Progress" Color="#3FAE6A" />
+            <SolidColorBrush x:Key="Brush.SkippedBorder" Color="#C9D1D7" />
+            <SolidColorBrush x:Key="Brush.Overlay" Color="#66FFFFFF" />
+            <SolidColorBrush x:Key="Brush.Toast" Color="#E61E2A33" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="Brush.Background" Color="#12181E" />
+            <SolidColorBrush x:Key="Brush.Surface" Color="#1B232B" />
+            <SolidColorBrush x:Key="Brush.Subtle" Color="#161D24" />
+            <SolidColorBrush x:Key="Brush.Border" Color="#2C3742" />
+            <SolidColorBrush x:Key="Brush.Text" Color="#E3E9EE" />
+            <SolidColorBrush x:Key="Brush.Muted" Color="#8D9BA7" />
+            <SolidColorBrush x:Key="Brush.Accent" Color="#3B82D0" />
+            <SolidColorBrush x:Key="Brush.AccentHover" Color="#5596DC" />
+            <SolidColorBrush x:Key="Brush.Nav" Color="#0D1217" />
+            <SolidColorBrush x:Key="Brush.NavText" Color="#AAB6C0" />
+            <SolidColorBrush x:Key="Brush.NavHover" Color="#18212A" />
+            <SolidColorBrush x:Key="Brush.NavSelected" Color="#1F2A35" />
+            <SolidColorBrush x:Key="Brush.Today" Color="#2E2A1A" />
+            <SolidColorBrush x:Key="Brush.TodayBorder" Color="#B8902F" />
+            <SolidColorBrush x:Key="Brush.Blocked" Color="#151B21" />
+            <SolidColorBrush x:Key="Brush.Danger" Color="#F07070" />
+            <SolidColorBrush x:Key="Brush.Warning" Color="#2F2918" />
+            <SolidColorBrush x:Key="Brush.WarningBorder" Color="#6B5A24" />
+            <SolidColorBrush x:Key="Brush.WarningText" Color="#F2D58A" />
+            <SolidColorBrush x:Key="Brush.RaceBg" Color="#3A1E24" />
+            <SolidColorBrush x:Key="Brush.RaceBorder" Color="#B8495A" />
+            <SolidColorBrush x:Key="Brush.RaceText" Color="#FFB3BE" />
+            <SolidColorBrush x:Key="Brush.RideBg" Color="#16301F" />
+            <SolidColorBrush x:Key="Brush.RideText" Color="#8FDCA8" />
+            <SolidColorBrush x:Key="Brush.Track" Color="#2A343E" />
+            <SolidColorBrush x:Key="Brush.Progress" Color="#3FAE6A" />
+            <SolidColorBrush x:Key="Brush.SkippedBorder" Color="#3A4550" />
+            <SolidColorBrush x:Key="Brush.Overlay" Color="#88000000" />
+            <SolidColorBrush x:Key="Brush.Toast" Color="#F0303C47" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
 
     <infra:StatusBrushConverter x:Key="StatusBrush" />
     <infra:KindBrushConverter x:Key="KindBrush" />

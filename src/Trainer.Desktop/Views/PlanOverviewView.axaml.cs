@@ -13,6 +13,7 @@ public partial class PlanOverviewView : UserControl
     {
         InitializeComponent();
         ChartStyle.Init(Chart);
+        ThemeManager.Changed += (_, _) => Draw();
         DataContextChanged += (_, _) =>
         {
             if (_vm is not null) _vm.PropertyChanged -= OnVmChanged;
@@ -48,7 +49,7 @@ public partial class PlanOverviewView : UserControl
                 vm.Weeks.Select(w => w.Week.WeekStart.AddDays(6).ToDateTime(TimeOnly.MinValue).ToOADate()).ToArray(),
                 vm.Weeks.Select(w => w.Week.PlannedCtl).ToArray());
             planned.LegendText = "Planned CTL";
-            planned.Color = Palette.Plot("#2563A8");
+            planned.Color = Palette.Plot(ThemeManager.IsDark ? "#5AA0EA" : "#2563A8");
             planned.LineWidth = 2;
             planned.MarkerSize = 4;
         }
@@ -57,7 +58,7 @@ public partial class PlanOverviewView : UserControl
             var actual = plot.Add.Scatter(vm.ActualLoads.Select(l => l.Date.ToDateTime(TimeOnly.MinValue).ToOADate()).ToArray(),
                 vm.ActualLoads.Select(l => l.Ctl).ToArray());
             actual.LegendText = "Actual CTL";
-            actual.Color = Palette.Plot("#1E2A33");
+            actual.Color = ChartStyle.Ink;
             actual.LineWidth = 2;
             actual.MarkerSize = 0;
         }

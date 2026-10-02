@@ -3,19 +3,23 @@
         x:Class="Trainer.Desktop.Views.MainWindow"
         Title="Cycling Training Planner" Width="1360" Height="860" MinWidth="1000" MinHeight="640"
         Icon="avares://Trainer/Assets/icon.png"
-        WindowStartupLocation="CenterScreen" Background="{StaticResource Brush.Background}">
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource Brush.Background}">
     <Grid ColumnDefinitions="210,*">
         <!-- Left-hand menu -->
-        <DockPanel Background="{StaticResource Brush.Nav}">
+        <DockPanel Background="{DynamicResource Brush.Nav}">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,18,12,22" Spacing="10">
                 <Image Source="avares://Trainer/Assets/icon.png" Width="38" Height="38" VerticalAlignment="Center" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Training Planner" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                    <TextBlock Text="Base · Build · Specialty" Foreground="{StaticResource Brush.NavText}" FontSize="11" Margin="0,2,0,0" />
+                    <TextBlock Text="Base · Build · Specialty" Foreground="{DynamicResource Brush.NavText}" FontSize="11" Margin="0,2,0,0" />
                 </StackPanel>
             </StackPanel>
-            <TextBlock DockPanel.Dock="Bottom" Margin="18,12" Foreground="{StaticResource Brush.NavText}" FontSize="11" TextWrapping="Wrap"
-                       Text="{Binding Version}" />
+            <DockPanel DockPanel.Dock="Bottom" Margin="16,8,12,12">
+                <Button DockPanel.Dock="Right" Classes="theme" Content="{Binding ThemeIcon}" Command="{Binding ToggleThemeCommand}"
+                        ToolTip.Tip="{Binding ThemeTip}" />
+                <TextBlock Foreground="{DynamicResource Brush.NavText}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"
+                           Text="{Binding Version}" />
+            </DockPanel>
             <ListBox Classes="nav" ItemsSource="{Binding Nav}" SelectedItem="{Binding SelectedNav}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -31,7 +35,7 @@
 
             <!-- Toast -->
             <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,24" Padding="16,10" CornerRadius="6"
-                    Background="#E61E2A33" IsVisible="{Binding ToastText, Converter={StaticResource HasValue}}">
+                    Background="{DynamicResource Brush.Toast}" IsVisible="{Binding ToastText, Converter={StaticResource HasValue}}">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="{Binding ToastText}" Foreground="White" MaxWidth="700" TextWrapping="Wrap" VerticalAlignment="Center" />
                     <Button Content="✕" Command="{Binding DismissToastCommand}" Padding="6,0" Background="Transparent" Foreground="White" />
@@ -39,8 +43,8 @@
             </Border>
 
             <!-- Busy overlay -->
-            <Grid Background="#66FFFFFF" IsVisible="{Binding IsBusy}">
-                <Border Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+            <Grid Background="{DynamicResource Brush.Overlay}" IsVisible="{Binding IsBusy}">
+                <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
                         CornerRadius="6" Padding="24,16" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <StackPanel Spacing="10">
                         <ProgressBar IsIndeterminate="True" Width="220" />

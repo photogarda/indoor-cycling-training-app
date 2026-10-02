@@ -173,7 +173,7 @@
                                          FontFamily="Consolas,Menlo,monospace" IsReadOnly="{Binding !TemplateEditable}" />
                                 <TextBlock Classes="muted" FontSize="11" Margin="0,4,0,0"
                                            Text="Steps separated by ; — [wu|cd|rec|fill|free] duration power% [&quot;label&quot;]. Durations 30s, 10m, 1h30m. Power 95 or 88-94 (% FTP). Repeats: 3x(10m 95, 5m 55). 'fill' stretches to the planned length; 'free' is ERG off." />
-                                <TextBlock Text="{Binding TemplateError}" Foreground="{StaticResource Brush.Danger}" Margin="0,6,0,0"
+                                <TextBlock Text="{Binding TemplateError}" Foreground="{DynamicResource Brush.Danger}" Margin="0,6,0,0"
                                            IsVisible="{Binding TemplateError, Converter={StaticResource HasValue}}" TextWrapping="Wrap" />
                                 <c:IntervalGraph Steps="{Binding TemplatePreview}" Ftp="{Binding PreviewFtp}" Height="160" Margin="0,10,0,0" />
                                 <TextBlock Text="{Binding TemplateStats}" Classes="muted" Margin="0,6,0,0" />

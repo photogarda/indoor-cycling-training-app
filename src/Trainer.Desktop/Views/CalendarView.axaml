@@ -8,24 +8,24 @@
             <Setter Property="Padding" Value="5,4" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
-            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
         </Style>
         <Style Selector="Border.day.other"><Setter Property="Opacity" Value="0.55" /></Style>
-        <Style Selector="Border.day.blocked"><Setter Property="Background" Value="{StaticResource Brush.Blocked}" /></Style>
+        <Style Selector="Border.day.blocked"><Setter Property="Background" Value="{DynamicResource Brush.Blocked}" /></Style>
         <Style Selector="Border.day.today">
-            <Setter Property="Background" Value="{StaticResource Brush.Today}" />
-            <Setter Property="BorderBrush" Value="#E9B949" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Today}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.TodayBorder}" />
         </Style>
-        <Style Selector="Border.day.drop"><Setter Property="BorderBrush" Value="{StaticResource Brush.Accent}" /><Setter Property="BorderThickness" Value="2" /></Style>
+        <Style Selector="Border.day.drop"><Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" /><Setter Property="BorderThickness" Value="2" /></Style>
         <Style Selector="Border.chip.skipped">
             <Setter Property="Opacity" Value="0.5" />
-            <Setter Property="BorderBrush" Value="#C9D1D7" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.SkippedBorder}" />
         </Style>
         <Style Selector="Border.chip">
             <Setter Property="Margin" Value="0,2,0,0" />
-            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Cursor" Value="Hand" />
@@ -81,19 +81,19 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                 <Grid ColumnDefinitions="*,170">
-                <Border Grid.Column="1" Margin="2" Padding="8,6" CornerRadius="5" BorderThickness="1" BorderBrush="{StaticResource Brush.Border}"
-                        Background="#F8FAFB" ToolTip.Tip="{Binding Tooltip}">
+                <Border Grid.Column="1" Margin="2" Padding="8,6" CornerRadius="5" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}"
+                        Background="{DynamicResource Brush.Subtle}" ToolTip.Tip="{Binding Tooltip}">
                     <StackPanel Spacing="2">
                         <Border CornerRadius="3" Padding="5,1" HorizontalAlignment="Left" IsVisible="{Binding Plan, Converter={StaticResource HasValue}}"
                                 Background="{Binding Plan.Phase, Converter={StaticResource PhaseBrush}}">
                             <TextBlock Text="{Binding PhaseLabel}" FontSize="10" Foreground="White" />
                         </Border>
-                        <TextBlock Text="Prescribed" FontSize="10" Foreground="{StaticResource Brush.Muted}" Margin="0,3,0,0" />
+                        <TextBlock Text="Prescribed" FontSize="10" Foreground="{DynamicResource Brush.Muted}" Margin="0,3,0,0" />
                         <TextBlock Text="{Binding PlannedText}" FontSize="12" FontWeight="SemiBold" />
-                        <TextBlock Text="Done" FontSize="10" Foreground="{StaticResource Brush.Muted}" Margin="0,3,0,0" />
-                        <TextBlock Text="{Binding DoneText}" FontSize="12" FontWeight="SemiBold" Foreground="#226B3D" />
+                        <TextBlock Text="Done" FontSize="10" Foreground="{DynamicResource Brush.Muted}" Margin="0,3,0,0" />
+                        <TextBlock Text="{Binding DoneText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.RideText}" />
                         <Grid IsVisible="{Binding Started}" Margin="0,3,0,0">
-                            <ProgressBar Value="{Binding DoneFraction}" Maximum="1.2" Height="12" MinWidth="0" Foreground="#3FAE6A" Background="#E3E8EC" />
+                            <ProgressBar Value="{Binding DoneFraction}" Maximum="1.2" Height="12" MinWidth="0" Foreground="{DynamicResource Brush.Progress}" Background="{DynamicResource Brush.Track}" />
                             <TextBlock Text="{Binding PercentText}" FontSize="9.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                     </StackPanel>
@@ -112,14 +112,14 @@
                             <TextBlock DockPanel.Dock="Top" Text="{Binding DayLabel}" FontSize="12" FontWeight="SemiBold" />
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Blocked.Reason, StringFormat='⛔ {0}'}" FontSize="11" Foreground="{StaticResource Brush.Muted}"
+                                    <TextBlock Text="{Binding Blocked.Reason, StringFormat='⛔ {0}'}" FontSize="11" Foreground="{DynamicResource Brush.Muted}"
                                                IsVisible="{Binding IsBlocked}" TextTrimming="CharacterEllipsis" />
                                     <ItemsControl ItemsSource="{Binding Races}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Margin="0,2,0,0" Background="#FDE7E9" BorderBrush="#E35D6A" BorderThickness="1" CornerRadius="4" Padding="5,2"
+                                                <Border Margin="0,2,0,0" Background="{DynamicResource Brush.RaceBg}" BorderBrush="{DynamicResource Brush.RaceBorder}" BorderThickness="1" CornerRadius="4" Padding="5,2"
                                                         ToolTip.Tip="{Binding Tooltip}">
-                                                    <TextBlock Text="{Binding Label, StringFormat='🏁 {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#9C2433" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Label, StringFormat='🏁 {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.RaceText}" TextTrimming="CharacterEllipsis" />
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -136,7 +136,7 @@
                                                                 <TextBlock DockPanel.Dock="Right" Text="☀ " FontSize="10" IsVisible="{Binding Outdoor}" />
                                                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11.5" TextTrimming="CharacterEllipsis" />
                                                             </DockPanel>
-                                                            <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{StaticResource Brush.Muted}" />
+                                                            <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{DynamicResource Brush.Muted}" />
                                                             <c:IntervalGraph Steps="{Binding Steps}" Compact="True" Height="16" Margin="0,2,0,0" IsHitTestVisible="False" />
                                                         </StackPanel>
                                                     </DockPanel>
@@ -147,8 +147,8 @@
                                     <ItemsControl ItemsSource="{Binding Activities}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Margin="0,2,0,0" Background="#E5F4EA" CornerRadius="4" Padding="5,2" ToolTip.Tip="{Binding Tooltip}">
-                                                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="#226B3D" TextTrimming="CharacterEllipsis" />
+                                                <Border Margin="0,2,0,0" Background="{DynamicResource Brush.RideBg}" CornerRadius="4" Padding="5,2" ToolTip.Tip="{Binding Tooltip}">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="{DynamicResource Brush.RideText}" TextTrimming="CharacterEllipsis" />
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

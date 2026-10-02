@@ -10,8 +10,14 @@ namespace Trainer.Desktop.Views;
 /// <summary>Shared ScottPlot styling: readable fonts, a clean legend, short dates, race labels along the top.</summary>
 public static class ChartStyle
 {
-    private static readonly Color Muted = Palette.Plot("#6A7884");
-    private static readonly Color GridLine = Palette.Plot("#E6EAEE");
+    private static bool Dark => Trainer.Desktop.Infrastructure.ThemeManager.IsDark;
+    private static Color Muted => Palette.Plot(Dark ? "#8D9BA7" : "#6A7884");
+    private static Color GridLine => Palette.Plot(Dark ? "#26313B" : "#E6EAEE");
+    private static Color Surface => Palette.Plot(Dark ? "#1B232B" : "#FFFFFF");
+    private static Color Border => Palette.Plot(Dark ? "#2C3742" : "#DCE2E7");
+    private static Color Text => Palette.Plot(Dark ? "#E3E9EE" : "#1E2A33");
+    /// <summary>The "actual CTL" line: dark ink in light mode, near-white in dark mode.</summary>
+    public static Color Ink => Palette.Plot(Dark ? "#E3E9EE" : "#1E2A33");
 
     /// <summary>One-time control setup: no debug overlay on double-click.</summary>
     public static void Init(AvaPlot control) => control.UserInputProcessor.DoubleLeftClickBenchmark(false);
@@ -19,11 +25,11 @@ public static class ChartStyle
     public static void Apply(Plot plot)
     {
         plot.Benchmark.IsVisible = false;
-        plot.FigureBackground.Color = Colors.White;
-        plot.DataBackground.Color = Colors.White;
+        plot.FigureBackground.Color = Surface;
+        plot.DataBackground.Color = Surface;
         plot.Grid.MajorLineColor = GridLine;
         plot.Axes.Color(Muted);
-        plot.Axes.FrameColor(Palette.Plot("#DCE2E7"));
+        plot.Axes.FrameColor(Border);
         foreach (var axis in new IAxis[] { plot.Axes.Bottom, plot.Axes.Left })
         {
             axis.TickLabelStyle.FontSize = 12;
@@ -35,9 +41,9 @@ public static class ChartStyle
 
         // Legend: compact, white, thin border, no shadow, enough padding that text isn't clipped.
         plot.Legend.FontSize = 12;
-        plot.Legend.FontColor = Palette.Plot("#1E2A33");
-        plot.Legend.BackgroundColor = Colors.White.WithAlpha(230);
-        plot.Legend.OutlineColor = Palette.Plot("#DCE2E7");
+        plot.Legend.FontColor = Text;
+        plot.Legend.BackgroundColor = Surface.WithAlpha(235);
+        plot.Legend.OutlineColor = Border;
         plot.Legend.OutlineWidth = 1;
         plot.Legend.ShadowColor = Colors.Transparent;
         plot.Legend.Padding = new PixelPadding(10, 10, 6, 6);

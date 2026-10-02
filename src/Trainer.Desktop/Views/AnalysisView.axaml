@@ -47,7 +47,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Grid Margin="4,0">
-                                            <ProgressBar Value="{Binding Fraction}" Maximum="1.2" Height="14" MinWidth="0" Foreground="#3FAE6A" Background="#ECEFF2" />
+                                            <ProgressBar Value="{Binding Fraction}" Maximum="1.2" Height="14" MinWidth="0" Foreground="{DynamicResource Brush.Progress}" Background="{DynamicResource Brush.Track}" />
                                             <TextBlock Text="{Binding Percent}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Grid>
                                     </DataTemplate>
