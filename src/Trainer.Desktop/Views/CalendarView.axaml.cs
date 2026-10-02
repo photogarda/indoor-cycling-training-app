@@ -9,7 +9,8 @@ namespace Trainer.Desktop.Views;
 /// <summary>Calendar interactions: double-click to open, drag a workout to move it, right-click a day to block it.</summary>
 public partial class CalendarView : UserControl
 {
-    private const string Format = "trainer/workout-id";
+    /// <summary>In-app drag format carrying the workout id as text.</summary>
+    private static readonly DataFormat<string> WorkoutFormat = DataFormat.CreateStringApplicationFormat("trainer-workout-id");
     private Point _pressAt;
     private CalendarWorkout? _pressed;
     private Border? _dropTarget;
@@ -62,9 +63,9 @@ public partial class CalendarView : UserControl
         if (Math.Abs(d.X) < 6 && Math.Abs(d.Y) < 6) return;
         var workout = _pressed;
         _pressed = null;
-        var data = new DataObject();
-        data.Set(Format, workout.Id);
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.Create(WorkoutFormat, workout.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
         SetDropTarget(null);
     }
 
@@ -76,7 +77,7 @@ public partial class CalendarView : UserControl
     private void OnDragOver(object? sender, DragEventArgs e)
     {
         var cell = Find<DayCell>(e.Source);
-        var ok = e.Data.Contains(Format) && cell is { IsPast: false, IsBlocked: false };
+        var ok = e.DataTransfer.Contains(WorkoutFormat) && cell is { IsPast: false, IsBlocked: false };
         e.DragEffects = ok ? DragDropEffects.Move : DragDropEffects.None;
         SetDropTarget(ok ? DayBorder(e.Source) : null);
     }
@@ -84,7 +85,8 @@ public partial class CalendarView : UserControl
     private void OnDrop(object? sender, DragEventArgs e)
     {
         SetDropTarget(null);
-        if (Find<DayCell>(e.Source) is { } cell && e.Data.Get(Format) is int id) Vm?.MoveWorkout(id, cell.Date);
+        if (Find<DayCell>(e.Source) is { } cell && int.TryParse(e.DataTransfer.TryGetValue(WorkoutFormat), out var id))
+            Vm?.MoveWorkout(id, cell.Date);
     }
 
     private void SetDropTarget(Border? b)
