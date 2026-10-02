@@ -69,23 +69,44 @@ public partial class TrainerService
         Refresh();
     }
 
-    /// <summary>Drag-and-drop move. The workout is locked on its new day and the rest of the plan re-flows.</summary>
+    /// <summary>Reason prefix of a day freed by moving its workout away.</summary>
+    public const string MovedAwayPrefix = "Moved: ";
+
+    /// <summary>
+    /// Moves a workout (drag-and-drop or "Move to"). It is locked on its new day, and the day it came from becomes
+    /// a rest day: you moved it because you can't train then, so nothing else is planned there. Moving it back
+    /// to its original day undoes that.
+    /// </summary>
     public void MoveWorkout(int id, DateOnly newDate)
     {
         if (newDate < Today) throw new TrainerValidationException("Workouts can only be moved to today or later.");
         using (var db = Db())
         {
-            if (db.BlockedDays.Any(b => b.Date == newDate)) throw new TrainerValidationException("That day is blocked.");
             var w = db.PlannedWorkouts.First(x => x.Id == id);
             if (w.Date < Today) throw new TrainerValidationException("Past workouts can't be moved.");
             if (w.Date == newDate) return;
-            // Remember where the plan first put it: the source week then isn't back-filled.
-            w.OriginalDate ??= w.Date;
-            if (PlanEngine.WeekStart(w.OriginalDate.Value) == PlanEngine.WeekStart(newDate)) w.OriginalDate = null;
-            w.Notes = $"Moved from {w.Date:ddd d MMM}";
+
+            // A day freed by an earlier move can take a workout again; a day you blocked yourself can't.
+            var destBlock = db.BlockedDays.FirstOrDefault(b => b.Date == newDate);
+            if (destBlock is not null)
+            {
+                if (!destBlock.Reason.StartsWith(MovedAwayPrefix, StringComparison.Ordinal))
+                    throw new TrainerValidationException("That day is blocked.");
+                db.BlockedDays.Remove(destBlock);
+            }
+
+            var from = w.Date;
+            var undo = w.OriginalDate == newDate;
+            w.OriginalDate = undo ? null : w.OriginalDate ?? from;
+            w.Notes = undo ? null : $"Moved from {from:ddd d MMM}";
             w.Date = newDate;
             w.Locked = true;
             w.Status = WorkoutStatus.Planned;
+
+            // Keep the day it left free, unless this move is an undo or something you placed is still there.
+            var othersStay = db.PlannedWorkouts.Any(x => x.Id != id && !x.Superseded && x.Date == from && (x.Locked || x.Date < Today));
+            if (!undo && !othersStay && !db.BlockedDays.Any(b => b.Date == from))
+                db.BlockedDays.Add(new BlockedDay { Date = from, Reason = $"{MovedAwayPrefix}{w.Name} → {newDate:ddd d MMM}" });
             db.SaveChanges();
         }
         Refresh();

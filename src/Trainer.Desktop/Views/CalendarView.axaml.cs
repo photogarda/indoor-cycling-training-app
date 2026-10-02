@@ -77,7 +77,7 @@ public partial class CalendarView : UserControl
     private void OnDragOver(object? sender, DragEventArgs e)
     {
         var cell = Find<DayCell>(e.Source);
-        var ok = e.DataTransfer.Contains(WorkoutFormat) && cell is { IsPast: false, IsBlocked: false };
+        var ok = e.DataTransfer.Contains(WorkoutFormat) && cell is { CanDrop: true };
         e.DragEffects = ok ? DragDropEffects.Move : DragDropEffects.None;
         SetDropTarget(ok ? DayBorder(e.Source) : null);
     }

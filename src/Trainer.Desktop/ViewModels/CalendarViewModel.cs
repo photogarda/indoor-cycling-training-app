@@ -50,6 +50,9 @@ public partial class DayCell : ObservableObject
     public bool IsPast { get; init; }
     public BlockedDay? Blocked { get; init; }
     public bool IsBlocked => Blocked is not null;
+    /// <summary>Freed by moving its workout away: you can still drop a workout here.</summary>
+    public bool IsMovedAway => Blocked?.Reason.StartsWith(global::Trainer.Data.Services.TrainerService.MovedAwayPrefix, StringComparison.Ordinal) == true;
+    public bool CanDrop => !IsPast && (!IsBlocked || IsMovedAway);
     public string DayLabel => Date.Day == 1 ? Date.ToString("d MMM", CultureInfo.CurrentCulture) : Date.Day.ToString(CultureInfo.CurrentCulture);
     public string WeekDayLabel => Date.ToString("ddd d MMM", CultureInfo.CurrentCulture);
     public ObservableCollection<CalendarWorkout> Workouts { get; } = [];
@@ -233,7 +236,9 @@ public partial class CalendarViewModel : ViewModelBase
     {
         var today = Trainer.Today;
         var from = w.W.Date.AddDays(-7) < today ? today : w.W.Date.AddDays(-7);
-        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays.Select(b => b.Date).ToHashSet();
+        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays
+            .Where(b => !b.Reason.StartsWith(global::Trainer.Data.Services.TrainerService.MovedAwayPrefix, StringComparison.Ordinal))
+            .Select(b => b.Date).ToHashSet();
         return Enumerable.Range(0, 28).Select(from.AddDays).Where(d => d != w.W.Date && !blocked.Contains(d));
     }
 

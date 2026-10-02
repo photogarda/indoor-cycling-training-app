@@ -62,7 +62,9 @@ public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) :
         MoveTargets.Clear();
         var today = Trainer.Today;
         var from = w.Date.AddDays(-7) < today ? today : w.Date.AddDays(-7);
-        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays.Select(b => b.Date).ToHashSet();
+        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays
+            .Where(b => !b.Reason.StartsWith(global::Trainer.Data.Services.TrainerService.MovedAwayPrefix, StringComparison.Ordinal))
+            .Select(b => b.Date).ToHashSet();
         foreach (var d in Enumerable.Range(0, 28).Select(from.AddDays).Where(d => d != w.Date && !blocked.Contains(d)))
             MoveTargets.Add(new DateOption(d));
         MoveTo = null;

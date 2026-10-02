@@ -173,7 +173,7 @@ that fall after the period, so the weeks inside it are right. Workouts you place
 are. Leave a date empty (or press Automatic) for the default: from today until your last A race, at
 least 8 weeks ahead.
 
-**Moving and removing workouts.** A moved workout is locked on its new day. If it moves to another week,
+**Moving and removing workouts.** A moved workout is locked on its new day, and the day it left becomes a rest day (shown as "Moved: …"; nothing else is planned there). Moving it back to its original day undoes that, and you can still drop another workout onto the freed day. If it moves to another week,
 the week it left isn't back-filled (its day stays free) and the week it lands in trims its other rides to
 stay within its hours. A removed workout leaves a rest day; the session isn't re-planned elsewhere and the
 other sessions keep their type and length. If a removed workout was a key session, or 40 %+ of the week's
@@ -211,7 +211,7 @@ own workouts are picked by the plan engine like the built-in ones.
 
 ## Status
 
-Everything on the v1 list is built, and the core is covered by 109 tests. These items still need checking on
+Everything on the v1 list is built, and the core is covered by 111 tests. These items still need checking on
 real hardware or accounts:
 
 - **Milestone 2:** copying to your exact Edge model over MTP, and riding an exported workout in ERG. The

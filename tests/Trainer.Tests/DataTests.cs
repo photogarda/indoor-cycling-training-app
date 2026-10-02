@@ -296,4 +296,41 @@ public class DataTests
         t.Service.SetPlanPeriod(null, null); // back to automatic
         Assert.NotEmpty(t.Service.GetWorkouts(t.Today, from.AddDays(-1)));
     }
+
+    [Fact]
+    public void Moving_to_the_next_day_leaves_the_old_day_empty_and_undo_restores_it()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        var week = t.Service.GetWorkouts(t.Today.AddDays(1), t.Today.AddDays(13));
+        var w = week.First(x => x.IsKey && x.Kind != WorkoutKind.RampTest);
+        var dayBefore = t.Service.GetWorkouts(w.Date.AddDays(1), w.Date.AddDays(1));
+
+        t.Service.MoveWorkout(w.Id, w.Date.AddDays(1)); // "can't do it Monday, do it Tuesday"
+
+        Assert.Empty(t.Service.GetWorkouts(w.Date, w.Date)); // Monday stays a rest day
+        var blocked = t.Service.GetCalendar(w.Date, w.Date).BlockedDays.Single();
+        Assert.StartsWith(TrainerService.MovedAwayPrefix, blocked.Reason);
+        var tuesday = Assert.Single(t.Service.GetWorkouts(w.Date.AddDays(1), w.Date.AddDays(1)));
+        Assert.Equal(w.Id, tuesday.Id); // only the moved workout on Tuesday
+        // Whatever was planned on Tuesday was not pushed onto Monday.
+        Assert.All(dayBefore, x => Assert.DoesNotContain(t.Service.GetWorkouts(w.Date, w.Date), y => y.Name == x.Name));
+
+        // Moving it back undoes everything.
+        t.Service.MoveWorkout(w.Id, w.Date);
+        Assert.Empty(t.Service.GetCalendar(w.Date, w.Date.AddDays(1)).BlockedDays);
+        Assert.Null(t.Service.GetWorkout(w.Id)!.OriginalDate);
+        Assert.Contains(t.Service.GetWorkouts(w.Date, w.Date), x => x.Id == w.Id);
+    }
+
+    [Fact]
+    public void A_day_you_blocked_yourself_still_refuses_moves()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        var w = t.Service.GetWorkouts(t.Today.AddDays(1), t.Today.AddDays(13)).First();
+        var target = w.Date.AddDays(2);
+        t.Service.BlockDay(target, "Holiday");
+        Assert.Throws<TrainerValidationException>(() => t.Service.MoveWorkout(w.Id, target));
+    }
 }
