@@ -7,6 +7,7 @@ using Trainer.Core.Models;
 using Trainer.Core.Training;
 using Trainer.Integrations.Edge;
 using Trainer.Integrations.Fit;
+using Trainer.Integrations.Zwift;
 
 namespace Trainer.App.ViewModels;
 
@@ -152,6 +153,21 @@ public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) :
             var file = Dialogs.SaveFile("Save workout", "FIT workout (*.fit)|*.fit", FitWorkoutWriter.FileName(Workout));
             if (file is null) return;
             File.WriteAllBytes(file, FitWorkoutWriter.Write(Workout, Ftp));
+            Shell?.Toast($"Saved {Path.GetFileName(file)}.");
+        });
+    }
+
+    /// <summary>Zwift workout file (% FTP, so Zwift applies its own FTP).</summary>
+    [RelayCommand]
+    private void SaveZwo()
+    {
+        if (Workout is null) return;
+        Run(() =>
+        {
+            var file = Dialogs.SaveFile("Save Zwift workout", "Zwift workout (*.zwo)|*.zwo",
+                ZwoWriter.FileName(Workout.Name, Workout.Date), ZwiftFolder.Find());
+            if (file is null) return;
+            File.WriteAllText(file, ZwoWriter.Write(Workout));
             Shell?.Toast($"Saved {Path.GetFileName(file)}.");
         });
     }

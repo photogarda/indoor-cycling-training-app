@@ -160,6 +160,7 @@
                         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
                             <Button Content="New" Command="{Binding NewTemplateCommand}" />
                             <Button Content="Duplicate" Command="{Binding DuplicateTemplateCommand}" />
+                            <Button Content="Export ZWO…" Command="{Binding ExportTemplateZwoCommand}" Margin="0" />
                         </StackPanel>
                         <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}">
                             <ListBox.ItemTemplate>

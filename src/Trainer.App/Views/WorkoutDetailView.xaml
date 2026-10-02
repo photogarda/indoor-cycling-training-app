@@ -6,6 +6,7 @@
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <Button DockPanel.Dock="Left" Content="‹ Back" Command="{Binding GoBackCommand}" VerticalAlignment="Center" />
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Save ZWO file…" Command="{Binding SaveZwoCommand}" ToolTip="Zwift workout file (also works in MyWhoosh, TrainerRoad, zwofactory.com)" />
                 <Button Content="Save FIT file…" Command="{Binding SaveFitCommand}" />
                 <Button Content="Export to Edge" Style="{StaticResource PrimaryButton}" Command="{Binding ExportToEdgeCommand}" Margin="0" />
             </StackPanel>

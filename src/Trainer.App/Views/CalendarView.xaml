@@ -80,6 +80,8 @@
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="Regenerate plan" Command="{Binding RegenerateCommand}" ToolTip="Re-run the plan engine from today" />
+                <Button Content="Week to ZWO…" Command="{Binding ExportWeekToZwoCommand}"
+                        ToolTip="Save the next 7 days as Zwift .zwo workout files" />
                 <Button Content="Send week to Edge" Style="{StaticResource PrimaryButton}" Command="{Binding SendWeekToEdgeCommand}" Margin="0"
                         ToolTip="Export the next 7 days of workouts as FIT files to the Garmin Edge" />
             </StackPanel>

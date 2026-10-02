@@ -8,6 +8,7 @@ using Trainer.Core.Models;
 using Trainer.Core.Workouts;
 using Trainer.Data.Services;
 using Trainer.Integrations.Edge;
+using Trainer.Integrations.Zwift;
 
 namespace Trainer.App.ViewModels;
 
@@ -346,6 +347,17 @@ public partial class SettingsViewModel : ViewModelBase
         if (SelectedTemplate is not { BuiltIn: false } t || !Dialogs.Confirm($"Delete {t.Name}?")) return;
         Trainer.DeleteTemplate(t.Id);
         LoadLibrary();
+    });
+
+    [RelayCommand]
+    private void ExportTemplateZwo() => Run(() =>
+    {
+        var steps = IntervalNotation.Parse(TemplateNotation);
+        var name = string.IsNullOrWhiteSpace(TemplateName) ? "Workout" : TemplateName.Trim();
+        var file = Dialogs.SaveFile("Save Zwift workout", "Zwift workout (*.zwo)|*.zwo", ZwoWriter.FileName(name), ZwiftFolder.Find());
+        if (file is null) return;
+        File.WriteAllText(file, ZwoWriter.Write(name, steps, TemplateDescription, kind: TemplateKind));
+        Shell?.Toast($"Saved {Path.GetFileName(file)}.");
     });
 
     // ---------- Data ----------

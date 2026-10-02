@@ -7,6 +7,7 @@ using Trainer.App.Infrastructure;
 using Trainer.Core.Models;
 using Trainer.Core.Planning;
 using Trainer.Integrations.Edge;
+using Trainer.Integrations.Zwift;
 
 namespace Trainer.App.ViewModels;
 
@@ -203,4 +204,25 @@ public partial class CalendarViewModel : ViewModelBase
         Shell?.Toast($"{files.Count} workout files saved to {folder}.");
         Dialogs.OpenInExplorer(folder);
     }, "Sending this week's workouts…");
+
+    /// <summary>Saves the next 7 days of workouts as Zwift .zwo files (default: Zwift's own workouts folder).</summary>
+    [RelayCommand]
+    private void ExportWeekToZwo() => Run(() =>
+    {
+        var today = Trainer.Today;
+        var workouts = Trainer.GetWorkouts(today, today.AddDays(6)).Where(w => w.Steps.Count > 0).ToList();
+        if (workouts.Count == 0)
+        {
+            Dialogs.Info("There are no workouts in the next 7 days.");
+            return;
+        }
+        var zwift = ZwiftFolder.Find();
+        var folder = Dialogs.PickFolder(zwift is null
+            ? "Save Zwift workouts (.zwo)"
+            : "Save Zwift workouts (.zwo) — Zwift's workouts folder is preselected", zwift ?? Trainer.Paths.ExportFolder);
+        if (folder is null) return;
+        var files = ZwiftFolder.SaveAll(workouts, folder);
+        Shell?.Toast($"{files.Count} .zwo files saved to {folder}." +
+                     (zwift is not null && string.Equals(folder, zwift, StringComparison.OrdinalIgnoreCase) ? " Restart Zwift to see them under Custom Workouts." : ""));
+    });
 }

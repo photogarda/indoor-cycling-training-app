@@ -43,9 +43,10 @@ public static class Dialogs
         return dlg.ShowDialog(Owner) == true ? dlg.FileName : null;
     }
 
-    public static string? SaveFile(string title, string filter, string fileName)
+    public static string? SaveFile(string title, string filter, string fileName, string? initialFolder = null)
     {
         var dlg = new SaveFileDialog { Title = title, Filter = filter, FileName = fileName };
+        if (!string.IsNullOrEmpty(initialFolder) && Directory.Exists(initialFolder)) dlg.InitialDirectory = initialFolder;
         return dlg.ShowDialog(Owner) == true ? dlg.FileName : null;
     }
 

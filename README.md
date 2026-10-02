@@ -61,6 +61,20 @@ The app opens on **Settings**:
 - **Watched folder:** point it at the folder where you download FIT files from Garmin Connect. New files
   are imported automatically while the app is open.
 
+### Zwift (.zwo files)
+
+Any workout can also be saved as a Zwift `.zwo` file, the format used by Zwift, MyWhoosh, TrainerRoad,
+TrainingPeaks Virtual and [zwofactory.com](https://zwofactory.com/templates/). Power stays as % FTP, so
+the riding app uses its own FTP setting.
+
+- **Workout detail → Save ZWO file…** for one workout.
+- **Calendar → Week to ZWO…** for the next 7 days.
+- **Settings → Workout library → Export ZWO…** for a library workout, including your own.
+
+If Zwift is installed, the save dialog opens in `Documents\Zwift\Workouts\<your Zwift id>`. Restart Zwift
+and the workouts appear under **Custom Workouts**. Two-step repeats become Zwift interval blocks, ERG-off
+steps become free ride, and step labels show as on-screen messages.
+
 ### Strava
 
 Create your own API application at <https://www.strava.com/settings/api> with **Authorization Callback
@@ -141,7 +155,7 @@ own workouts are picked by the plan engine like the built-in ones.
 
 ## Status
 
-Everything on the v1 list is built, and the core is covered by 93 tests. These items still need checking on
+Everything on the v1 list is built, and the core is covered by 99 tests. These items still need checking on
 real hardware or accounts:
 
 - **Milestone 2:** copying to your exact Edge model over MTP, and riding an exported workout in ERG. The
