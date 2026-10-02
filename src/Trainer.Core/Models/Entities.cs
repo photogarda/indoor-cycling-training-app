@@ -102,7 +102,12 @@ public class PlannedWorkout
     /// <summary>Replaced by a newer plan version. Kept only for history.</summary>
     public bool Superseded { get; set; }
     public string? Notes { get; set; }
+    /// <summary>Where the plan first put it, when the rider moved it. Lets the engine keep the source week from back-filling.</summary>
+    public DateOnly? OriginalDate { get; set; }
 
+    public bool IsSkipped => Status == WorkoutStatus.Skipped;
+    /// <summary>TSS that counts towards load: zero for a skipped workout.</summary>
+    public double LoadTss => IsSkipped ? 0 : Tss;
     public TimeSpan Duration => TimeSpan.FromSeconds(DurationSec);
 }
 

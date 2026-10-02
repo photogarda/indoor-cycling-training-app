@@ -70,7 +70,7 @@ public partial class TrainerService
     {
         using var db = Db();
         var from = today.AddDays(-60);
-        var workouts = db.PlannedWorkouts.Where(w => !w.Superseded && w.Date >= from && w.Date <= today).ToList();
+        var workouts = db.PlannedWorkouts.Where(w => !w.Superseded && w.Date >= from && w.Date <= today && w.Status != WorkoutStatus.Skipped).ToList();
         var fromTime = from.AddDays(-1).ToDateTime(TimeOnly.MinValue);
         var activities = db.Activities.Where(a => a.StartTime >= fromTime).ToList();
 
@@ -205,7 +205,7 @@ public partial class TrainerService
         using var db = Db();
         var thisWeek = PlanEngine.WeekStart(Today);
         var from = thisWeek.AddDays(-7 * (weeks - 1));
-        var workouts = db.PlannedWorkouts.AsNoTracking().Where(w => !w.Superseded && w.Date >= from && w.Date <= Today).ToList();
+        var workouts = db.PlannedWorkouts.AsNoTracking().Where(w => !w.Superseded && w.Date >= from && w.Date <= Today && w.Status != WorkoutStatus.Skipped).ToList();
         var loads = db.DailyLoads.AsNoTracking().Where(l => l.Date >= from).ToList();
         var list = new List<WeekCompliance>();
         for (var w = from; w <= thisWeek; w = w.AddDays(7))

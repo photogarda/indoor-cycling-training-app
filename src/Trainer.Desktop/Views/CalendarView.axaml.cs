@@ -115,9 +115,33 @@ public partial class CalendarView : UserControl
         }
         foreach (var w in cell.Workouts)
         {
-            var open = new MenuItem { Header = $"Open {w.Name}" };
+            // One submenu per workout: open, move to another day, remove or restore.
+            var sub = new MenuItem { Header = w.IsSkipped ? $"{w.Name} (removed)" : w.Name };
+            var open = new MenuItem { Header = "Open" };
             open.Click += (_, _) => vm.OpenCommand.Execute(w.Id);
-            items.Add(open);
+            sub.Items.Add(open);
+            if (w.CanEdit && !w.IsSkipped)
+            {
+                var move = new MenuItem { Header = "Move to" };
+                foreach (var d in vm.MoveTargets(w))
+                {
+                    var day = d;
+                    var item = new MenuItem { Header = day.ToString("ddd d MMM", System.Globalization.CultureInfo.CurrentCulture) };
+                    item.Click += (_, _) => vm.MoveWorkout(w.Id, day);
+                    move.Items.Add(item);
+                }
+                sub.Items.Add(move);
+                var remove = new MenuItem { Header = "Remove from plan…" };
+                remove.Click += async (_, _) => await vm.SkipWorkout(w);
+                sub.Items.Add(remove);
+            }
+            if (w.CanEdit && w.IsSkipped)
+            {
+                var restore = new MenuItem { Header = "Restore" };
+                restore.Click += (_, _) => vm.RestoreWorkout(w);
+                sub.Items.Add(restore);
+            }
+            items.Add(sub);
         }
         var menu = new ContextMenu { ItemsSource = items };
         menu.Open(target);

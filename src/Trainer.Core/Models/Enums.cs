@@ -37,7 +37,8 @@ public enum Phase
 
 public enum WeekType { Load, Recovery }
 
-public enum WorkoutStatus { Planned, Done, Partial, Missed, Moved }
+/// <summary>Skipped: removed from the plan by the rider; the day stays a rest day.</summary>
+public enum WorkoutStatus { Planned, Done, Partial, Missed, Moved, Skipped }
 
 /// <summary>Training purpose of a workout. Drives selection in the plan engine and colours in the UI.</summary>
 public enum WorkoutKind

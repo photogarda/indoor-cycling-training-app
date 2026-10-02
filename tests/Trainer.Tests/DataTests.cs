@@ -240,4 +240,43 @@ public class DataTests
             File.Delete(zip);
         }
     }
+
+    [Fact]
+    public void Removing_a_workout_keeps_the_day_free_and_can_be_undone()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        var w = t.Service.GetWorkouts(t.Today.AddDays(1), t.Today.AddDays(6)).First(x => x.IsKey);
+        t.Service.SkipWorkout(w.Id);
+
+        Assert.DoesNotContain(t.Service.GetWorkouts(w.Date, w.Date), x => true); // hidden from normal lists and exports
+        var skipped = Assert.Single(t.Service.GetWorkouts(w.Date, w.Date, includeSkipped: true));
+        Assert.Equal(WorkoutStatus.Skipped, skipped.Status);
+        t.Service.Refresh();
+        Assert.Equal(WorkoutStatus.Skipped, t.Service.GetWorkout(w.Id)!.Status); // survives regenerating
+
+        t.Today = w.Date.AddDays(2); // compliance doesn't turn it into "missed"
+        t.Service.Refresh();
+        Assert.Equal(WorkoutStatus.Skipped, t.Service.GetWorkout(w.Id)!.Status);
+
+        t.Today = PlanTestKit.Today;
+        t.Service.RestoreWorkout(w.Id);
+        Assert.NotEmpty(t.Service.GetWorkouts(w.Date, w.Date));
+    }
+
+    [Fact]
+    public void Moving_to_another_week_remembers_the_original_day()
+    {
+        using var t = new TestDb();
+        t.Service.AddFtp(250, FtpMethod.Manual);
+        var w = t.Service.GetWorkouts(t.Today.AddDays(1), t.Today.AddDays(6)).First(x => x.IsKey);
+        var target = Trainer.Core.Planning.PlanEngine.WeekStart(w.Date).AddDays(9);
+        t.Service.MoveWorkout(w.Id, target);
+        var moved = t.Service.GetWorkout(w.Id)!;
+        Assert.Equal(target, moved.Date);
+        Assert.Equal(w.Date, moved.OriginalDate);
+        // Moving back into the original week forgets it again.
+        t.Service.MoveWorkout(w.Id, w.Date);
+        Assert.Null(t.Service.GetWorkout(w.Id)!.OriginalDate);
+    }
 }

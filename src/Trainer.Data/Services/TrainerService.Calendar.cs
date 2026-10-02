@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Trainer.Core.Models;
+using Trainer.Core.Planning;
 using Trainer.Core.Training;
 using Trainer.Core.Workouts;
 
@@ -31,10 +32,15 @@ public partial class TrainerService
         return db.PlannedWorkouts.AsNoTracking().FirstOrDefault(w => w.Id == id);
     }
 
-    public List<PlannedWorkout> GetWorkouts(DateOnly from, DateOnly to)
+    /// <summary>Current workouts in a date range. Skipped ones are left out unless asked for.</summary>
+    public List<PlannedWorkout> GetWorkouts(DateOnly from, DateOnly to, bool includeSkipped = false)
     {
         using var db = Db();
-        return db.PlannedWorkouts.AsNoTracking().Where(w => !w.Superseded && w.Date >= from && w.Date <= to).OrderBy(w => w.Date).ToList();
+        return db.PlannedWorkouts.AsNoTracking()
+            .Where(w => !w.Superseded && w.Date >= from && w.Date <= to)
+            .AsEnumerable()
+            .Where(w => includeSkipped || !w.IsSkipped)
+            .OrderBy(w => w.Date).ToList();
     }
 
     /// <summary>Blocks a day (holiday, work trip, sick). The plan shifts around it.</summary>
@@ -73,10 +79,44 @@ public partial class TrainerService
             var w = db.PlannedWorkouts.First(x => x.Id == id);
             if (w.Date < Today) throw new TrainerValidationException("Past workouts can't be moved.");
             if (w.Date == newDate) return;
+            // Remember where the plan first put it: the source week then isn't back-filled.
+            w.OriginalDate ??= w.Date;
+            if (PlanEngine.WeekStart(w.OriginalDate.Value) == PlanEngine.WeekStart(newDate)) w.OriginalDate = null;
             w.Notes = $"Moved from {w.Date:ddd d MMM}";
             w.Date = newDate;
             w.Locked = true;
             w.Status = WorkoutStatus.Planned;
+            db.SaveChanges();
+        }
+        Refresh();
+    }
+
+    /// <summary>
+    /// Removes a workout from the plan. The day stays a rest day; if a key session (or 40 %+ of the week's
+    /// load) is removed, next week repeats this week's load instead of stepping up.
+    /// </summary>
+    public void SkipWorkout(int id)
+    {
+        using (var db = Db())
+        {
+            var w = db.PlannedWorkouts.First(x => x.Id == id);
+            if (w.Date < Today) throw new TrainerValidationException("Past workouts can't be removed.");
+            w.Status = WorkoutStatus.Skipped;
+            w.Locked = true;
+            w.Notes = "Removed by you";
+            db.SaveChanges();
+        }
+        Refresh();
+    }
+
+    /// <summary>Undoes a removal: the plan engine fills the day again.</summary>
+    public void RestoreWorkout(int id)
+    {
+        using (var db = Db())
+        {
+            var w = db.PlannedWorkouts.First(x => x.Id == id);
+            if (!w.IsSkipped) return;
+            w.Superseded = true;
             db.SaveChanges();
         }
         Refresh();

@@ -38,12 +38,14 @@ public static class Palette
     public static readonly IBrush Partial = B("#E9A100");
     public static readonly IBrush Missed = B("#D64545");
     public static readonly IBrush Planned = B("#8A99A3");
+    public static readonly IBrush Skipped = B("#D3DAE0");
 
     public static IBrush Status(WorkoutStatus s) => s switch
     {
         WorkoutStatus.Done => Done,
         WorkoutStatus.Partial => Partial,
         WorkoutStatus.Missed => Missed,
+        WorkoutStatus.Skipped => Skipped,
         _ => Planned,
     };
 

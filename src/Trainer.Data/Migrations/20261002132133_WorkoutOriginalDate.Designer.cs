@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trainer.Data;
 
@@ -10,9 +11,11 @@ using Trainer.Data;
 namespace Trainer.Data.Migrations
 {
     [DbContext(typeof(TrainerDbContext))]
-    partial class TrainerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261002132133_WorkoutOriginalDate")]
+    partial class WorkoutOriginalDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.31");

@@ -20,7 +20,7 @@ public static class Compliance
     /// </summary>
     public static Dictionary<int, int> Match(IEnumerable<Activity> activities, IEnumerable<PlannedWorkout> workouts)
     {
-        var plan = workouts.Where(w => !w.Superseded).ToList();
+        var plan = workouts.Where(w => !w.Superseded && !w.IsSkipped).ToList();
         var links = new Dictionary<int, int>();
         var taken = new HashSet<int>();
         var acts = activities.OrderBy(a => a.StartTime).ToList();
@@ -52,7 +52,8 @@ public static class Compliance
     /// <summary>A bad week has 3+ missed workouts or under 60 % of planned TSS.</summary>
     public static bool IsBadWeek(IReadOnlyCollection<PlannedWorkout> weekWorkouts, double actualTss)
     {
-        var planned = weekWorkouts.Where(w => !w.Superseded).ToList();
+        // Skipped workouts are the rider's own decision; the plan engine handles them separately.
+        var planned = weekWorkouts.Where(w => !w.Superseded && !w.IsSkipped).ToList();
         if (planned.Count == 0) return false;
         var missed = planned.Count(w => w.Status == WorkoutStatus.Missed);
         var plannedTss = planned.Sum(w => w.Tss);

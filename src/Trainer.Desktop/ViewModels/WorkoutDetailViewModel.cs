@@ -11,6 +11,11 @@ using Trainer.Integrations.Zwift;
 
 namespace Trainer.Desktop.ViewModels;
 
+public record DateOption(DateOnly Date)
+{
+    public string Label => Date.ToString("dddd d MMM");
+}
+
 public record StepRow(string Start, string Length, string Target, string Watts, string Zone, string Label);
 
 public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) : ViewModelBase
@@ -30,6 +35,9 @@ public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) :
     [ObservableProperty] private bool _canEdit;
 
     public ObservableCollection<StepRow> Rows { get; } = [];
+    public ObservableCollection<DateOption> MoveTargets { get; } = [];
+    [ObservableProperty] private DateOption? _moveTo;
+    [ObservableProperty] private bool _isSkipped;
     public ObservableCollection<WorkoutTemplate> Templates { get; } = [];
     public IList<WorkoutStep>? Steps => Workout?.Steps;
 
@@ -50,6 +58,14 @@ public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) :
         Indoor = w.Indoor;
         Locked = w.Locked;
         CanEdit = w.Date >= Trainer.Today;
+        IsSkipped = w.IsSkipped;
+        MoveTargets.Clear();
+        var today = Trainer.Today;
+        var from = w.Date.AddDays(-7) < today ? today : w.Date.AddDays(-7);
+        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays.Select(b => b.Date).ToHashSet();
+        foreach (var d in Enumerable.Range(0, 28).Select(from.AddDays).Where(d => d != w.Date && !blocked.Contains(d)))
+            MoveTargets.Add(new DateOption(d));
+        MoveTo = null;
         DurationText = Format.Duration(w.DurationSec);
         var load = Core.Workouts.WorkoutMetrics.Analyze(w.Steps);
         Summary = $"{w.Date:dddd d MMMM yyyy} · {w.Kind.Display()}{(w.IsKey ? " (key session)" : "")} · {Format.Duration(w.DurationSec)} · " +
@@ -100,6 +116,34 @@ public partial class WorkoutDetailViewModel(int workoutId, ViewModelBase back) :
 
     [RelayCommand]
     private void GoBack() => Shell?.GoBack(Back);
+
+    [RelayCommand]
+    private void Move()
+    {
+        if (Workout is null || MoveTo is null) return;
+        Run(() => Trainer.MoveWorkout(Workout.Id, MoveTo.Date));
+        Shell?.Toast($"{Workout.Name} moved to {MoveTo.Date:ddd d MMM}. The plan was adapted around it.");
+    }
+
+    [RelayCommand]
+    private async Task Remove()
+    {
+        if (Workout is null) return;
+        if (!await Dialogs.Confirm($"Remove {Workout.Name} on {Workout.Date:dddd d MMM}?\n\nThe day becomes a rest day." +
+                                   (Workout.IsKey ? " Because it's a key session, next week repeats this week's load instead of stepping up." : "")))
+            return;
+        Run(() => Trainer.SkipWorkout(Workout.Id));
+        Shell?.Toast($"{Workout.Name} removed. The plan was adapted.");
+        Shell?.GoBack(Back);
+    }
+
+    [RelayCommand]
+    private void Restore()
+    {
+        if (Workout is null) return;
+        Run(() => Trainer.RestoreWorkout(Workout.Id));
+        Shell?.GoBack(Back);
+    }
 
     [RelayCommand]
     private void Swap()

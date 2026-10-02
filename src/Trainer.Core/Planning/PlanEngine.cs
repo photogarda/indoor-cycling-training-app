@@ -127,7 +127,7 @@ public static class PlanEngine
             ScheduleRampTests(specs, i0);
             ComputeRoles();
 
-            foreach (var w in _frozen.Where(w => w.IsKey && w.Status != WorkoutStatus.Missed)) _keyDates.Add(w.Date);
+            foreach (var w in _frozen.Where(w => w.IsKey && w.Status is not (WorkoutStatus.Missed or WorkoutStatus.Skipped))) _keyDates.Add(w.Date);
             foreach (var r in _in.Races.Where(r => r.Priority != RacePriority.A)) _keyDates.Add(r.Date);
 
             var ctl = StartingCtl();
@@ -251,20 +251,40 @@ public static class PlanEngine
             {
                 var cur = specs[i];
                 var prev = specs[i - 1];
-                if (!_in.BadWeeks.Contains(prev.Start)) continue;
+                var bad = _in.BadWeeks.Contains(prev.Start);
+                var shortened = ShortenedBySkips(prev);
+                if (!bad && shortened is null) continue;
                 if (cur.Type != WeekType.Load || prev.Type != WeekType.Load) continue;
                 if (cur.Phase is Phase.Taper or Phase.Recovery || prev.Phase is Phase.Taper or Phase.Recovery) continue;
                 cur.HoursFactor = prev.HoursFactor;
                 cur.ProgressOverride = prev.Progress(_cycle);
                 cur.RepeatsLoad = true;
-                _result.Notes.Add($"Week of {cur.Start:d MMM} repeats last week's load: last week was under plan.");
+                _result.Notes.Add(bad
+                    ? $"Week of {cur.Start:d MMM} repeats last week's load: last week was under plan."
+                    : $"Week of {cur.Start:d MMM} repeats the week before instead of stepping up: {shortened}.");
             }
+        }
+
+        /// <summary>
+        /// Why a week counts as shortened by the rider's own removals (a skipped key session, or 40 %+ of the
+        /// week's target hours skipped), or null if it doesn't.
+        /// </summary>
+        private string? ShortenedBySkips(WeekSpec week)
+        {
+            var end = week.Start.AddDays(6);
+            var skipped = _in.Existing.Where(w => !w.Superseded && w.IsSkipped && w.Date >= week.Start && w.Date <= end).ToList();
+            if (skipped.Count == 0) return null;
+            var key = skipped.FirstOrDefault(w => w.IsKey);
+            if (key is not null) return $"{key.Name} was removed";
+            var target = _athlete.WeeklyHours * week.HoursFactor;
+            var lost = skipped.Sum(w => w.DurationSec) / 3600.0;
+            return target > 0 && lost >= 0.4 * target ? $"{lost / target * 100:0} % of its hours were removed" : null;
         }
 
         private void ScheduleRampTests(List<WeekSpec> specs, int i0)
         {
             DateOnly? last = _in.FtpHistory.Where(f => f.Method == FtpMethod.Ramp).Select(f => (DateOnly?)f.Date).Max();
-            var frozenTest = _frozen.Where(w => w.Kind == WorkoutKind.RampTest && w.Status != WorkoutStatus.Missed)
+            var frozenTest = _frozen.Where(w => w.Kind == WorkoutKind.RampTest && w.Status is not (WorkoutStatus.Missed or WorkoutStatus.Skipped))
                 .Select(w => (DateOnly?)w.Date).Max();
             if (frozenTest > last || last is null) last = frozenTest ?? last;
 
@@ -327,6 +347,9 @@ public static class PlanEngine
             var progress = spec.Progress(_cycle);
             var race = spec.TargetRace;
             var frozenInWeek = _frozen.Where(w => w.Date >= spec.Start && w.Date <= weekEnd).ToList();
+            // Moved by the rider into another week: still "spent" here, so this week isn't back-filled.
+            var movedOut = _in.Existing.Where(w => !w.Superseded && w.OriginalDate is { } o && o >= spec.Start && o <= weekEnd
+                                                   && (w.Date < spec.Start || w.Date > weekEnd)).ToList();
             var racesInWeek = _in.Races.Where(r => r.Date >= spec.Start && r.Date <= weekEnd).ToList();
             var aRaceThisWeek = racesInWeek.FirstOrDefault(r => r.Priority == RacePriority.A);
 
@@ -336,10 +359,12 @@ public static class PlanEngine
             var pastEmpty = days.Count(d => d < _start && _trainingDays.Contains(d.DayOfWeek) && frozenInWeek.All(w => w.Date != d));
             if (trainingDaysInWeek > 0 && pastEmpty > 0) hours *= 1 - (double)pastEmpty / trainingDaysInWeek;
 
-            var budget = hours - frozenInWeek.Sum(w => w.DurationSec) / 3600.0
+            var budget = hours - frozenInWeek.Concat(movedOut).Sum(w => w.DurationSec) / 3600.0
                                - racesInWeek.Where(r => r.Date >= _start).Sum(r => r.DurationHours);
             var slots = new List<Slot>();
-            bool Open(DateOnly d) => d >= _start && !_blocked.Contains(d) && !_frozenDates.Contains(d);
+            // The day a workout was moved away from stays free.
+            var movedFromDays = movedOut.Select(w => w.OriginalDate!.Value).ToHashSet();
+            bool Open(DateOnly d) => d >= _start && !_blocked.Contains(d) && !_frozenDates.Contains(d) && !movedFromDays.Contains(d);
 
             // 1. Race-driven days: openers, recovery rides, easy mini-taper days.
             foreach (var d in days.Where(Open))
@@ -365,7 +390,7 @@ public static class PlanEngine
 
             // 2. Key budget.
             var keysWanted = KeysFor(spec, aRaceThisWeek is not null);
-            var satisfied = frozenInWeek.Count(w => w.IsKey && w.Status != WorkoutStatus.Missed)
+            var satisfied = frozenInWeek.Concat(movedOut).Count(w => w.IsKey && w.Status != WorkoutStatus.Missed)
                             + racesInWeek.Count(r => r.Priority != RacePriority.A);
             var keysNeeded = Math.Max(0, keysWanted - satisfied);
             var missedKeys = frozenInWeek.Where(w => w.IsKey && w.Status == WorkoutStatus.Missed && w.Date < _start).ToList();
@@ -389,7 +414,7 @@ public static class PlanEngine
             // 4. Long ride on the preferred day.
             var longDays = new List<DateOnly>();
             var longHours = 0.0;
-            var hasLong = frozenInWeek.Any(w => w.Kind == WorkoutKind.LongRide);
+            var hasLong = frozenInWeek.Concat(movedOut).Any(w => w.Kind == WorkoutKind.LongRide);
             // A B or C race is the week's big day, so it replaces the long ride.
             var minorRace = racesInWeek.Any(r => r.Priority != RacePriority.A);
             if (!hasLong && !minorRace && _trainingDays.Count >= 2 && aRaceThisWeek is null && avail.Count > 0)
@@ -434,6 +459,13 @@ public static class PlanEngine
             }
             var keyHours = spec.Phase == Phase.Taper || spec.Type == WeekType.Recovery ? 1.0 : LevelRules.KeySessionHours(_level);
             var menu = KeyMenu(spec, progress);
+            // Session types the week already has (done, locked, removed or moved elsewhere by the rider) aren't
+            // planned again, so removing Tuesday's threshold doesn't turn Thursday's VO2 into threshold.
+            foreach (var have in frozenInWeek.Concat(movedOut).Where(w => w.IsKey && w.Status != WorkoutStatus.Missed))
+            {
+                var at = menu.FindIndex(m => m.Kind == have.Kind);
+                if (at >= 0 && menu.Count > 1) menu.RemoveAt(at);
+            }
             var keyProgress = spec.Phase == Phase.Taper || spec.Type == WeekType.Recovery ? -1 : progress;
             for (var j = 0; j < keyDays.Count; j++)
             {
@@ -478,7 +510,9 @@ public static class PlanEngine
             }
 
             // Hours left over (few days, many hours): lengthen key sessions to 2 h, then the long ride.
-            if (budget > 0.25 && spec.Type == WeekType.Load && spec.Phase is not (Phase.Taper or Phase.Recovery))
+            // Not in a week the rider trimmed (removed or moved out): their decision isn't undone by longer rides.
+            var riderTrimmed = movedOut.Count > 0 || frozenInWeek.Any(w => w.IsSkipped);
+            if (budget > 0.25 && !riderTrimmed && spec.Type == WeekType.Load && spec.Phase is not (Phase.Taper or Phase.Recovery))
             {
                 var keys = slots.Where(s => s.IsKey && s.Template.Kind != WorkoutKind.RampTest).ToList();
                 foreach (var k in keys)
@@ -523,12 +557,12 @@ public static class PlanEngine
             foreach (var d in days.Where(d => d >= _start))
             {
                 var tss = slots.Where(s => s.Date == d).Sum(s => s.Built!.Tss)
-                          + _frozen.Where(w => w.Date == d).Sum(w => w.Tss)
+                          + _frozen.Where(w => w.Date == d).Sum(w => w.LoadTss)
                           + racesInWeek.Where(r => r.Date == d).Sum(RaceRules.EstimatedTss);
                 ctl += (tss - ctl) / Pmc.CtlDays;
             }
 
-            var weekTss = slots.Sum(s => s.Built!.Tss) + frozenInWeek.Sum(w => w.Tss) + racesInWeek.Sum(RaceRules.EstimatedTss);
+            var weekTss = slots.Sum(s => s.Built!.Tss) + frozenInWeek.Sum(w => w.LoadTss) + racesInWeek.Sum(RaceRules.EstimatedTss);
             _result.Weeks.Add(new PlanWeek
             {
                 WeekStart = spec.Start,

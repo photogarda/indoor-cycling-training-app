@@ -18,6 +18,10 @@
             <Setter Property="BorderBrush" Value="#E9B949" />
         </Style>
         <Style Selector="Border.day.drop"><Setter Property="BorderBrush" Value="{StaticResource Brush.Accent}" /><Setter Property="BorderThickness" Value="2" /></Style>
+        <Style Selector="Border.chip.skipped">
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="BorderBrush" Value="#C9D1D7" />
+        </Style>
         <Style Selector="Border.chip">
             <Setter Property="Margin" Value="0,2,0,0" />
             <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
@@ -52,7 +56,7 @@
             <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
         </Border>
         <TextBlock DockPanel.Dock="Bottom" Classes="muted" FontSize="11" Margin="2,6,0,0"
-                   Text="Double-click a workout to open it · drag it to another day to move it (it gets locked) · right-click a day to block or unblock it.   Green = done · amber = partial · red = missed." />
+                   Text="Double-click a workout to open it · drag it to another day to move it · right-click to move, remove or restore a workout, or to block a day.   Green = done · amber = partial · red = missed." />
 
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,170" Margin="0,0,0,2">
         <TextBlock Grid.Column="1" Text="Week" Classes="muted" Margin="8,0" />
@@ -123,7 +127,7 @@
                                     <ItemsControl ItemsSource="{Binding Workouts}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Classes="chip" ToolTip.Tip="{Binding Tooltip}">
+                                                <Border Classes="chip" Classes.skipped="{Binding IsSkipped}" ToolTip.Tip="{Binding Tooltip}">
                                                     <DockPanel>
                                                         <Border DockPanel.Dock="Left" Width="4" CornerRadius="4,0,0,4" Background="{Binding Status, Converter={StaticResource StatusBrush}}" />
                                                         <StackPanel Margin="5,3,4,3">

@@ -16,7 +16,9 @@ public record CalendarWorkout(PlannedWorkout W)
     public int Id => W.Id;
     public string Name => W.Name;
     public string Duration => Format.Duration(W.DurationSec);
-    public string Summary => $"{Format.Duration(W.DurationSec)} · {W.Tss:0} TSS";
+    public string Summary => W.IsSkipped ? "removed · right-click to restore" : $"{Format.Duration(W.DurationSec)} · {W.Tss:0} TSS";
+    public bool IsSkipped => W.IsSkipped;
+    public bool CanEdit { get; init; }
     public WorkoutStatus Status => W.Status;
     public WorkoutKind Kind => W.Kind;
     public bool IsKey => W.IsKey;
@@ -132,7 +134,7 @@ public partial class CalendarViewModel : ViewModelBase
         {
             var we = ws.AddDays(6);
             weeks.TryGetValue(ws, out var wk);
-            var planned = data.Workouts.Where(w => w.Date >= ws && w.Date <= we).ToList();
+            var planned = data.Workouts.Where(w => w.Date >= ws && w.Date <= we && !w.IsSkipped).ToList();
             var done = data.Activities.Where(a => a.Date >= ws && a.Date <= we).ToList();
             var week = new CalendarWeek
             {
@@ -156,7 +158,7 @@ public partial class CalendarViewModel : ViewModelBase
                     Blocked = data.BlockedDays.FirstOrDefault(b => b.Date == d),
                 };
                 foreach (var r in data.Races.Where(r => r.Date == d)) cell.Races.Add(new CalendarRace(r));
-                foreach (var w in data.Workouts.Where(w => w.Date == d)) cell.Workouts.Add(new CalendarWorkout(w));
+                foreach (var w in data.Workouts.Where(w => w.Date == d)) cell.Workouts.Add(new CalendarWorkout(w) { CanEdit = d >= today });
                 foreach (var a in data.Activities.Where(a => a.Date == d)) cell.Activities.Add(new CalendarActivity(a));
                 week.Days.Add(cell);
             }
@@ -213,6 +215,27 @@ public partial class CalendarViewModel : ViewModelBase
     }
 
     public void UnblockDay(DateOnly date) => Run(() => Trainer.UnblockDay(date));
+
+    /// <summary>Removes a workout; the plan adapts (no back-fill, next week holds its load if a key session goes).</summary>
+    public async Task SkipWorkout(CalendarWorkout w)
+    {
+        if (!await Dialogs.Confirm($"Remove {w.Name} on {w.W.Date:dddd d MMM}?\n\nThe day becomes a rest day." +
+                                   (w.IsKey ? " Because it's a key session, next week repeats this week's load instead of stepping up." : "")))
+            return;
+        Run(() => Trainer.SkipWorkout(w.Id));
+        Shell?.Toast($"{w.Name} removed. The plan was adapted.");
+    }
+
+    public void RestoreWorkout(CalendarWorkout w) => Run(() => Trainer.RestoreWorkout(w.Id));
+
+    /// <summary>Days a workout can be moved to: today onwards, three weeks ahead, not blocked.</summary>
+    public IEnumerable<DateOnly> MoveTargets(CalendarWorkout w)
+    {
+        var today = Trainer.Today;
+        var from = w.W.Date.AddDays(-7) < today ? today : w.W.Date.AddDays(-7);
+        var blocked = Trainer.GetCalendar(from, from.AddDays(27)).BlockedDays.Select(b => b.Date).ToHashSet();
+        return Enumerable.Range(0, 28).Select(from.AddDays).Where(d => d != w.W.Date && !blocked.Contains(d));
+    }
 
     /// <summary>Exports the next 7 days of workouts to the Edge in one go.</summary>
     [RelayCommand]

@@ -315,6 +315,81 @@ public class PlanEngineTests
         Assert.Contains(plan.Notes, n => n.Contains("CTL rise"));
     }
 
+    // ---------- Rider removes or moves workouts ----------
+
+    [Fact]
+    public void Skipped_key_is_not_replanned_and_next_week_repeats_the_load()
+    {
+        var monday = new DateOnly(2026, 10, 12); // load week followed by a harder load week
+        var first = Generate(Athlete(), start: monday);
+        var key = first.Workouts.First(w => w.IsKey && w.Kind != WorkoutKind.RampTest && w.Date < monday.AddDays(7));
+        key.Id = 7;
+        key.Status = WorkoutStatus.Skipped;
+        key.Locked = true;
+
+        var normal = Generate(Athlete(), start: monday);
+        var adapted = Generate(Athlete(), start: monday, existing: [key]);
+
+        // Nothing replaces it that day or as an extra key that week.
+        Assert.DoesNotContain(adapted.Workouts, w => w.Date == key.Date);
+        int Keys(PlanResult p) => p.Workouts.Count(w => w.IsKey && w.Date < monday.AddDays(7));
+        Assert.Equal(Keys(normal) - 1, Keys(adapted));
+        // The other key sessions stay what they were (the removed one isn't re-planned in their place).
+        var otherKeys = normal.Workouts.Where(w => w.IsKey && w.Date < monday.AddDays(7) && w.Date != key.Date).ToList();
+        foreach (var k in otherKeys)
+        {
+            var same = adapted.Workouts.Single(w => w.Date == k.Date);
+            Assert.Equal(k.Name, same.Name);
+            Assert.True(same.DurationSec <= k.DurationSec, "remaining sessions don't grow to make up the removed time");
+        }
+        // Next week repeats this week's load instead of stepping up.
+        Assert.NotEqual(normal.Weeks[0].TargetHours, normal.Weeks[1].TargetHours);
+        Assert.Equal(adapted.Weeks[0].TargetHours, adapted.Weeks[1].TargetHours);
+        Assert.Contains(adapted.Notes, n => n.Contains("was removed"));
+        // Removed load doesn't count towards the week.
+        Assert.True(adapted.Weeks[0].TargetTss < normal.Weeks[0].TargetTss);
+    }
+
+    [Fact]
+    public void Skipped_endurance_ride_does_not_change_next_week()
+    {
+        var monday = new DateOnly(2026, 10, 12);
+        var first = Generate(Athlete(), start: monday);
+        var easy = first.Workouts.First(w => !w.IsKey && w.Kind != WorkoutKind.LongRide && w.Date < monday.AddDays(7));
+        easy.Id = 8;
+        easy.Status = WorkoutStatus.Skipped;
+        easy.Locked = true;
+        var adapted = Generate(Athlete(), start: monday, existing: [easy]);
+        Assert.Equal(first.Weeks[1].TargetHours, adapted.Weeks[1].TargetHours);
+        Assert.DoesNotContain(adapted.Workouts, w => w.Date == easy.Date);
+    }
+
+    [Fact]
+    public void Workout_moved_into_next_week_is_not_backfilled_and_next_week_shrinks()
+    {
+        var monday = new DateOnly(2026, 10, 12);
+        var first = Generate(Athlete(), start: monday);
+        var key = first.Workouts.First(w => w.IsKey && w.Kind != WorkoutKind.RampTest && w.Date < monday.AddDays(7));
+        var nextWeekEmpty = Enumerable.Range(7, 7).Select(monday.AddDays)
+            .First(d => first.Workouts.All(w => w.Date != d));
+        var moved = new PlannedWorkout
+        {
+            Id = 9, Date = nextWeekEmpty, OriginalDate = key.Date, Name = key.Name, Kind = key.Kind, IsKey = true,
+            Locked = true, DurationSec = key.DurationSec, Tss = key.Tss, Steps = key.Steps,
+        };
+        var adapted = Generate(Athlete(), start: monday, existing: [moved]);
+        int Keys(PlanResult p, int week) => p.Workouts.Count(w => w.IsKey && w.Date >= monday.AddDays(7 * week) && w.Date < monday.AddDays(7 * week + 7));
+        double Hours(PlanResult p, int week) => p.Workouts.Where(w => w.Date >= monday.AddDays(7 * week) && w.Date < monday.AddDays(7 * week + 7)).Sum(w => w.Duration.TotalHours);
+
+        // The day it left stays free, and this week gets one key fewer with no replacement.
+        Assert.DoesNotContain(adapted.Workouts, w => w.Date == key.Date);
+        Assert.Equal(Keys(first, 0) - 1, Keys(adapted, 0));
+        // Next week: the moved key counts, so the engine plans one key fewer around it and fewer hours.
+        Assert.Equal(Keys(first, 1) - 1, Keys(adapted, 1));
+        Assert.True(Hours(adapted, 1) < Hours(first, 1));
+        AssertNoConsecutiveKeys(adapted);
+    }
+
     // ---------- FTP tests ----------
 
     [Fact]
