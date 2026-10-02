@@ -6,6 +6,8 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Import from Edge" Classes="primary" Command="{Binding ImportFromEdgeCommand}" />
                 <Button Content="Import FIT files…" Command="{Binding ImportFilesCommand}" />
+                <ComboBox ItemsSource="{Binding StravaRanges}" SelectedItem="{Binding SelectedStravaRange}" DisplayMemberBinding="{Binding Label}"
+                          ToolTip.Tip="How far back Sync Strava looks. Rides already imported are skipped." Margin="0,0,4,0" MinWidth="140" />
                 <Button Content="Sync Strava" Command="{Binding SyncStravaCommand}" />
                 <Button Content="Open FIT folder" Command="{Binding OpenFitFolderCommand}" Margin="0" />
             </StackPanel>

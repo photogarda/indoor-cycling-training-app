@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Trainer.Desktop.Infrastructure;
 using Trainer.Core.Models;
 using Trainer.Integrations.Edge;
+using Trainer.Integrations.Strava;
 
 namespace Trainer.Desktop.ViewModels;
 
@@ -115,11 +116,41 @@ public partial class ActivitiesViewModel : ViewModelBase
             await Dialogs.Info("Connect Strava in Settings first (you need your own Strava API application).");
             return;
         }
-        var progress = new Progress<string>(s => Shell?.SetBusy(s));
-        var report = await S.Strava.SyncAsync(progress);
-        Shell?.Toast($"Strava: {report}");
-        if (report.Errors.Count > 0) await Dialogs.Error(string.Join("\n", report.Errors.Take(10)));
+        var range = SelectedStravaRange.Range;
+        using var cts = new CancellationTokenSource();
+        if (Shell is not null) Shell.BusyCancel = cts;
+        var progress = new Progress<string>(s => { if (!cts.IsCancellationRequested) Shell?.SetBusy(s); });
+        try
+        {
+            var report = await S.Strava.SyncAsync(range, progress, cts.Token);
+            Shell?.Toast($"Strava: {report}");
+            if (report.Note is not null) await Dialogs.Info($"Strava: {report}");
+            if (report.Errors.Count > 0) await Dialogs.Error(string.Join("\n", report.Errors.Take(10)));
+        }
+        catch (OperationCanceledException)
+        {
+            Shell?.Toast("Strava sync stopped. Rides downloaded so far are kept; sync again to continue.");
+        }
+        finally
+        {
+            if (Shell is not null) Shell.BusyCancel = null;
+            Load();
+        }
     }, "Checking Strava…");
+
+    public record StravaRangeOption(string Label, StravaRange Range);
+
+    private static readonly StravaRangeOption[] Ranges =
+    [
+        new("New rides", StravaRange.NewRides),
+        new("Last 12 months", StravaRange.LastYear),
+        new("All rides", StravaRange.Everything),
+    ];
+
+    public IReadOnlyList<StravaRangeOption> StravaRanges => Ranges;
+
+    /// <summary>How far back "Sync Strava" reaches. Defaults to new rides each time the screen is opened.</summary>
+    [ObservableProperty] private StravaRangeOption _selectedStravaRange = Ranges[0];
 
     [RelayCommand]
     private void OpenFitFolder() => Dialogs.OpenFolder(Trainer.Paths.FitFolder);

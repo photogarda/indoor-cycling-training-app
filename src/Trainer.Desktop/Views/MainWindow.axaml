@@ -48,7 +48,9 @@
                         CornerRadius="6" Padding="24,16" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <StackPanel Spacing="10">
                         <ProgressBar IsIndeterminate="True" Width="220" />
-                        <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+                        <Button Content="Stop" Command="{Binding CancelBusyCommand}" IsVisible="{Binding CanCancelBusy}"
+                                HorizontalAlignment="Center" Margin="0" />
                     </StackPanel>
                 </Border>
             </Grid>

@@ -121,6 +121,18 @@ browser opens Strava's consent page; the app listens on `http://localhost:8723/`
 The same ride from the Edge and from Strava is stored once (start time within 2 minutes), and the FIT
 file wins.
 
+The box next to **Sync Strava** picks how far back it looks:
+
+- **New rides** (default): since the last sync. The first sync covers the last 90 days.
+- **Last 12 months** or **All rides**: fetches your history. Rides already imported are skipped without
+  downloading them again.
+
+Strava allows a limited number of requests: by default 100 to 200 per 15 minutes and 1,000 to 2,000 per
+day, and each ride costs one. When a sync hits the 15-minute limit, it waits for the next window and
+carries on; the waiting screen says until when, and **Stop** ends the sync early. At the daily limit it
+stops and keeps what it has downloaded. Run the same sync again the next day to continue. A year of
+rides (about 300) takes roughly 30 to 45 minutes; a long history can take a few days.
+
 ### Your data
 
 Everything is in one folder: `trainer.db` and the `fit` folder of imported rides.
@@ -211,7 +223,7 @@ own workouts are picked by the plan engine like the built-in ones.
 
 ## Status
 
-Everything on the v1 list is built, and the core is covered by 111 tests. These items still need checking on
+Everything on the v1 list is built, and the core is covered by 116 tests. These items still need checking on
 real hardware or accounts:
 
 - **Milestone 2:** copying to your exact Edge model over MTP, and riding an exported workout in ERG. The

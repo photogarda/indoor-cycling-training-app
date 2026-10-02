@@ -13,6 +13,45 @@ public record StravaTokens(string AccessToken, string RefreshToken, DateTime Exp
 public record StravaActivitySummary(long Id, string Name, string SportType, DateTime StartUtc, int MovingTime, double Distance);
 
 /// <summary>
+/// Strava answered 429. Strava counts requests per 15 minutes (windows start at :00, :15, :30 and :45) and per
+/// day (resets at midnight UTC). <see cref="Daily"/> tells which one ran out.
+/// </summary>
+public sealed class StravaRateLimitException(bool daily) : InvalidOperationException(daily
+    ? "Strava's daily request limit is reached. Sync again tomorrow to continue."
+    : "Strava rate limit reached. Try again in 15 minutes.")
+{
+    public bool Daily { get; } = daily;
+
+    /// <summary>When requests are allowed again: the next quarter hour, or midnight UTC for the daily limit.</summary>
+    public DateTime RetryAtUtc(DateTime nowUtc)
+    {
+        if (Daily) return nowUtc.Date.AddDays(1);
+        var quarter = nowUtc.Date.AddMinutes((int)(nowUtc.TimeOfDay.TotalMinutes / 15) * 15);
+        return quarter.AddMinutes(15).AddSeconds(10);
+    }
+
+    /// <summary>
+    /// Reads Strava's "X-RateLimit-Limit: 200,2000" and "X-RateLimit-Usage: 201,1500" headers (and the
+    /// X-ReadRateLimit pair): the limit is daily when a daily count has reached its cap.
+    /// </summary>
+    public static StravaRateLimitException FromHeaders(Func<string, string?> header)
+    {
+        static (int, int)? Pair(string? v)
+        {
+            var parts = v?.Split(',');
+            return parts is { Length: 2 } && int.TryParse(parts[0].Trim(), out var a) && int.TryParse(parts[1].Trim(), out var b) ? (a, b) : null;
+        }
+        var daily = false;
+        foreach (var prefix in new[] { "X-RateLimit", "X-ReadRateLimit" })
+        {
+            if (Pair(header($"{prefix}-Limit")) is { } limit && Pair(header($"{prefix}-Usage")) is { } usage && usage.Item2 >= limit.Item2)
+                daily = true;
+        }
+        return new StravaRateLimitException(daily);
+    }
+}
+
+/// <summary>
 /// Minimal Strava API client for your own API application (single athlete). Register an app at
 /// strava.com/settings/api with "Authorization Callback Domain" set to <c>localhost</c>.
 /// </summary>
@@ -78,7 +117,7 @@ public sealed class StravaClient(HttpClient http)
     {
         var list = new List<StravaActivitySummary>();
         var after = new DateTimeOffset(DateTime.SpecifyKind(afterUtc, DateTimeKind.Utc)).ToUnixTimeSeconds();
-        for (var page = 1; page < 50; page++)
+        for (var page = 1; page < 500; page++)
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, $"{Api}athlete/activities?after={after}&per_page=100&page={page}");
             req.Headers.Authorization = new("Bearer", accessToken);
@@ -137,10 +176,10 @@ public sealed class StravaClient(HttpClient http)
     private static async Task EnsureOk(HttpResponseMessage res, CancellationToken ct)
     {
         if (res.IsSuccessStatusCode) return;
+        if (res.StatusCode == HttpStatusCode.TooManyRequests)
+            throw StravaRateLimitException.FromHeaders(h => res.Headers.TryGetValues(h, out var v) ? v.FirstOrDefault() : null);
         var body = await res.Content.ReadAsStringAsync(ct);
-        throw new InvalidOperationException(res.StatusCode == HttpStatusCode.TooManyRequests
-            ? "Strava rate limit reached. Try again in 15 minutes."
-            : $"Strava request failed ({(int)res.StatusCode}): {body}");
+        throw new InvalidOperationException($"Strava request failed ({(int)res.StatusCode}): {body}");
     }
 
     private sealed class TokenResponse

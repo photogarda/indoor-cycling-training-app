@@ -75,6 +75,17 @@ public partial class MainViewModel : ObservableObject
 
     public void SetBusy(string? text) => BusyText = text;
 
+    /// <summary>Set while a long job (like a Strava history sync) can be stopped from the busy overlay.</summary>
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanCancelBusy))] private CancellationTokenSource? _busyCancel;
+    public bool CanCancelBusy => BusyCancel is not null;
+
+    [RelayCommand]
+    private void CancelBusy()
+    {
+        BusyCancel?.Cancel();
+        BusyText = "Stopping…";
+    }
+
     private CancellationTokenSource? _toastCts;
 
     public async void Toast(string text)

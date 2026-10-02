@@ -16,13 +16,16 @@ public record SyncReport(int Added, int Replaced, int Duplicates, List<string> E
             list.Count(r => r.Outcome is ImportOutcome.Duplicate or ImportOutcome.Empty), errors);
     }
 
+    /// <summary>Extra line for the rider, e.g. that a long Strava history sync stopped at the daily limit.</summary>
+    public string? Note { get; init; }
+
     public override string ToString()
     {
         var parts = new List<string> { $"{Added} new ride{(Added == 1 ? "" : "s")}" };
         if (Replaced > 0) parts.Add($"{Replaced} Strava ride{(Replaced == 1 ? "" : "s")} upgraded to the FIT file");
         if (Duplicates > 0) parts.Add($"{Duplicates} already imported");
         if (Errors.Count > 0) parts.Add($"{Errors.Count} failed");
-        return string.Join(", ", parts) + ".";
+        return string.Join(", ", parts) + "." + (Note is null ? "" : " " + Note);
     }
 }
 
